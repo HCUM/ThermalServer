@@ -1,0 +1,63 @@
+Installation and compiling instructions to run the 
+sample application with a PI imager:
+-------------------------------------------------------------------------------------------------------------
+
+1.  Install the following packets, if not already done (sudo apt-get install gcc)
+    gcc
+    cmake
+    build-essential
+    libudev-dev
+    freeglut3
+    freeglut3-dev
+2.  Copy calibration files of used imager to directory /usr/lib/imager/Cali/
+3.  Copy file ~/libImager/config/Formats.def to directory /usr/lib/imager/
+4.  Set read permissions in order to enable file access with the desired user account
+    sudo chmod 755 /usr/lib/imager
+    sudo chmod 755 /usr/lib/imager/Cali
+    sudo chmod 644 /usr/lib/imager/Formats.def
+    sudo chmod 644 /usr/lib/imager/Cali/*  
+5.  Copy file ~/libImager/config/88-optrisimager-usb.rules to directory /etc/udev/rules.d
+6.  Reload udev daemon rules
+    sudo udevadm control --reload-rules
+7.  Do the following commands to build example application:
+    cd example/build
+    cmake ..
+    make
+8.  Add the current user to the group video
+    sudo usermod -a -G video username
+9.  Edit one of the xml-files in config
+    Rename the file according to the serial number of your imager device.
+    Edit content: FOV (Field of view) and temperature range according to the calibration data of your imager device.
+10. plug imager
+11. If you are using a PI200 or PI400 device, reload uvcvideo module with nodrop option
+    sudo rmmod uvcvideo
+    sudo modprobe uvcvideo nodrop=1
+    Consider to make this option permanent, since it will be lost after the next reboot.
+12. Launch the sample application, e.g., ./imager_show ../../config/12070039.xml
+
+Notes on Ubuntu 10.04
+---------------------
+Important: following hints are obsolete when using the UVC controller
+
+Due to a bug in Linux kernel versions <2.6.35, hidraw interfacing is not working properly
+with interrupt end nodes. For that, libusb-1.0 needs to be used as workaround.
+For that, additionally install
+- libusb-dev
+- libusb-1.0-0-dev
+Configure udev rules for libusb, e.g.
+- Change in /lib/udev/rules.d/50-udev-default.rules the following line
+  SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb_device", MODE="0664"
+  to
+  SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb_device", MODE="0666"
+  Then reboot.
+
+
+Troubleshooting
+---------------
+If you cannot launch the example application, please check the following steps:
+1.  Check video streaming, e.g. with guvcview
+    Do also display the frame rate. If you see a green noisy image, UVC interfacing is ok.
+    If not, check the USB connection (lsusb), syslog messages (/var/log/syslog) and read permissions.    
+2.  The example application is using OpenGL: Check your graphics driver installation and whether 3D rendering is enabled (glxinfo).
+3.  If you launch imager_show in a VirtualBox environment, OpenGL might crash. In that case start it as follows:
+    LIBGL_ALWAYS_INDIRECT=1 ./imager_show ../../config/12070039.xml

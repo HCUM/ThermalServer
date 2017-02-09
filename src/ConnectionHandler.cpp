@@ -60,7 +60,7 @@ void ConnectionHandler::handleConnection() {
             length = strlen(frame);
             status  = write(client_fd, frame, length);
 
-            usleep(33300);  // 30 fps
+            usleep(33000);  // 30 fps
 
         }
         catch (exception& e)

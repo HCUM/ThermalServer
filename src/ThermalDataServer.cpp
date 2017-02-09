@@ -4,26 +4,89 @@
 
 #include "ThermalDataServer.h"
 #include <QPoint>
+#include <thread>
 #include "math.h"
+#include <string.h>
+#include <iostream>
+#include <fstream>
+
+
+
+#include <iostream>
+#include <sys/stat.h>
+
+
+
 
 typedef std::int64_t size_type;
+using namespace std;
 
 
 
+class HandleThermalDataConnection {
+
+private:
+    int _client_fd;
+    ThermalDataServer* _server;
+
+    void Send(std::vector<float>& vec, int sock )
+    {
+        cout << "send shit! now " << "\n";
+        const size_type sz = vec.size();
+        float* t = &(vec.front());
+        send( sock, t , sz * sizeof( float ) ,0);
+    }
+
+public:
+
+    HandleThermalDataConnection(int client_fd, ThermalDataServer *server){
+        _server = server;
+        _client_fd = client_fd;
+    }
+
+    void handleConnection(){
+        while(1) {
+            char buffer[256];
+            bzero(buffer, 256);
+            int n = read(_client_fd, buffer, 255);
+            if(n==0) break;
 
 
+            if(buffer[0] == 'E'){
+                cout << "export thermal data" << endl;
+                std::ofstream tempFile("/home/pascalknierim/Desktop/export/sample.csv");
+                float temp = 0;
+                for (auto &point : _server->line) // access by reference to avoid copying
+                {
+                    temp = _server->_pBuilder->getTemperatureAt(point.x(), point.y());
+                    tempFile << temp << ", ";
+                }
+                tempFile.close();
+            }
 
-std::vector<QPoint> line;
+            if(buffer[0] == 'S') {
+                cout << "send thermal data" << endl;
+                std::vector<float> ar;
+                float temp = 0;
+                for (auto &point : _server->line) // access by reference to avoid copying
+                {
+                    temp = _server->_pBuilder->getTemperatureAt(point.x(), point.y());
+                    ar.push_back(temp);
+                }
+                Send(ar, _client_fd);
+            }
+        }
+        std::cout << "ThermalData connection closed. ConnectionID: " << _client_fd << std::endl;
+    }
+};
+
+
 
 void ThermalDataServer::setTemperatureLine(QPoint start, QPoint end)
 {
-    std::cout << "TRIGGERED" << start.x()<< std::endl;
-    std::cout << "TMP" << _pBuilder->getTemperatureAt(start.x()/2,start.y()/2) << std::endl;
-
+    line.clear();
 
     // calculate line with Bresenham
-
-
     int x = start.x()/2;
     int y = start.y()/2;
 
@@ -44,10 +107,7 @@ void ThermalDataServer::setTemperatureLine(QPoint start, QPoint end)
     int numerator = longest >> 1 ;
     for (int i=0;i<=longest;i++) {
 
-
         line.push_back(QPoint(x,y));
-
-
         numerator += shortest ;
         if (!(numerator<longest)) {
             numerator -= longest ;
@@ -106,22 +166,24 @@ ThermalDataServer::ThermalDataServer(optris::ImageBuilder *pBuilder) {
     addr_size = sizeof client_addr;
 }
 
-void ThermalDataServer::Send(std::vector<float>& vec, int sock )
-{
-    cout << "send shit! now " << "\n";
-    const size_type sz = vec.size();
-    float* t = &(vec.front());
-    send( sock, t , sz * sizeof( float ) ,0);
-}
+//void ThermalDataServer::Send(std::vector<float>& vec, int sock )
+//{
+//    const size_type sz = vec.size();
+//    float* t = &(vec.front());
+//    send( sock, t , sz * sizeof( float ) ,0);
+//}
 
 void ThermalDataServer::start() {
 
-
-
-    printf("I am now accepting connections ...\n");
+    const int dir_err = mkdir("/home/pascalknierim/Desktop/export", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+    if (-1 == dir_err)
+    {
+        printf("Error creating directory, it was probably already there\n");
+    }
 
     while(1){
         // Accept a new connection and return back the socket desciptor
+        printf("I am now accepting connections ...\n");
         new_conn_fd = accept(listner, (struct sockaddr *) & client_addr, &addr_size);
         if(new_conn_fd < 0)
         {
@@ -132,34 +194,12 @@ void ThermalDataServer::start() {
         inet_ntop(client_addr.ss_family, get_in_addr((struct sockaddr *) &client_addr),s ,sizeof s);
         printf("I am now connected to %s \n",s);
 
-
-        std::vector<float> ar;
-
-        float temp =0;
-        for (auto &point : line) // access by reference to avoid copying
-        {
-            temp = _pBuilder->getTemperatureAt(point.x(),point.y());
-            ar.push_back(temp);
-            //cout << "x: " << point.x() << " y: " << point.y()<< " temp: " << temp << endl;
-        }
-
-
-        Send(ar, new_conn_fd );
-
-
-        if(status == -1)
-        {
-            close(new_conn_fd);
-            _exit(4);
-        }
-
+        HandleThermalDataConnection* h = new HandleThermalDataConnection(new_conn_fd, this);
+        std::thread* connectionThread = new std::thread();
+        std::thread tmp(&HandleThermalDataConnection::handleConnection, h);
+        connectionThread->swap(tmp);
+        connectionThread->detach();
     }
-    // Close the socket before we finish
-    //close(new_conn_fd);
-
-    //return 0;
-
-
 }
 
 

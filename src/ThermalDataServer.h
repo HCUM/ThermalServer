@@ -31,10 +31,12 @@ public slots:
 public:
     ThermalDataServer(optris::ImageBuilder *pBuilder);
     void start();
+    std::vector<QPoint> line;
+    optris::ImageBuilder *_pBuilder;
 
 private:
     void * get_in_addr(struct sockaddr * sa);
-    void ThermalDataServer::Send(std::vector<int>& vec, int sock );
+    //void Send(std::vector<float>& vec, int sock );
 
     int status;
     struct addrinfo hints, * res;
@@ -45,9 +47,6 @@ private:
     struct sockaddr_storage client_addr;
     socklen_t addr_size;
     char s[INET6_ADDRSTRLEN]; // an empty string
-    optris::ImageBuilder *_pBuilder;
-    void Send(std::vector<float>& vec, int sock );
-
 };
 
 

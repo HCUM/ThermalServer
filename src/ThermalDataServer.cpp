@@ -10,81 +10,59 @@
 #include <iostream>
 #include <fstream>
 
+#include <QTimer>
 
 
 #include <iostream>
 #include <sys/stat.h>
+#include <ctime>
+
+#include <stdlib.h>
+
+#include "HandleThermalDataConnection.h"
 
 
-
-
-typedef std::int64_t size_type;
 using namespace std;
 
 
+void ThermalDataServer::updateStationaryState(){
 
-class HandleThermalDataConnection {
-
-private:
-    int _client_fd;
-    ThermalDataServer* _server;
-
-    void Send(std::vector<float>& vec, int sock )
-    {
-        cout << "send shit! now " << "\n";
-        const size_type sz = vec.size();
-        float* t = &(vec.front());
-        send( sock, t , sz * sizeof( float ) ,0);
-    }
-
-public:
-
-    HandleThermalDataConnection(int client_fd, ThermalDataServer *server){
-        _server = server;
-        _client_fd = client_fd;
-    }
-
-    void handleConnection(){
-        while(1) {
-            char buffer[256];
-            bzero(buffer, 256);
-            int n = read(_client_fd, buffer, 255);
-            if(n==0) break;
-
-
-            if(buffer[0] == 'E'){
-                cout << "export thermal data" << endl;
-                std::ofstream tempFile("/home/pascalknierim/Desktop/export/sample.csv");
-                float temp = 0;
-                for (auto &point : _server->line) // access by reference to avoid copying
-                {
-                    temp = _server->_pBuilder->getTemperatureAt(point.x(), point.y());
-                    tempFile << temp << ", ";
-                }
-                tempFile.close();
-            }
-
-            if(buffer[0] == 'S') {
-                cout << "send thermal data" << endl;
-                std::vector<float> ar;
-                float temp = 0;
-                for (auto &point : _server->line) // access by reference to avoid copying
-                {
-                    temp = _server->_pBuilder->getTemperatureAt(point.x(), point.y());
-                    ar.push_back(temp);
-                }
-                Send(ar, _client_fd);
-            }
+    if(reset){
+        reset = false;
+        std::cout << " reset" << std::endl;
+        float temp = 0;
+        for (auto &point : line) // access by reference to avoid copying
+        {
+            temp = _pBuilder->getTemperatureAt(point.x(), point.y());
+            oldTempVector.push_back(temp);
         }
-        std::cout << "ThermalData connection closed. ConnectionID: " << _client_fd << std::endl;
+        return;
     }
-};
 
+    std::vector<float> newTempVector;
+    float temp = 0;
+    int i = 0;
+    float _maxChange = 0;
+    for (auto &point : line) // access by reference to avoid copying
+    {
+        float diff = oldTempVector.at(i) -  _pBuilder->getTemperatureAt(point.x(), point.y());
+        if(abs(diff)> _maxChange)
+            _maxChange = abs(diff);
+        oldTempVector.at(i)  = _pBuilder->getTemperatureAt(point.x(), point.y());
+        i++;
+    }
+    maxChange = _maxChange;
+    emit maxTempChanged(maxChange);
+}
 
 
 void ThermalDataServer::setTemperatureLine(QPoint start, QPoint end)
 {
     line.clear();
+    std::cout << "calculate new gradient line." << std::endl;
+    reset = true;
+    timer->start(5000);
+
 
     // calculate line with Bresenham
     int x = start.x()/2;
@@ -164,18 +142,19 @@ ThermalDataServer::ThermalDataServer(optris::ImageBuilder *pBuilder) {
 
     // Calculate the size of the data structure
     addr_size = sizeof client_addr;
+
+    _min = 15;
+    _max = 40;
+
+    timer = new QTimer(this);
+    connect(timer, SIGNAL(timeout()), this, SLOT(updateStationaryState()));
 }
 
-//void ThermalDataServer::Send(std::vector<float>& vec, int sock )
-//{
-//    const size_type sz = vec.size();
-//    float* t = &(vec.front());
-//    send( sock, t , sz * sizeof( float ) ,0);
-//}
+
 
 void ThermalDataServer::start() {
 
-    const int dir_err = mkdir("/home/pascalknierim/Desktop/export", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+    const int dir_err = mkdir("/tmp/export/", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
     if (-1 == dir_err)
     {
         printf("Error creating directory, it was probably already there\n");
@@ -211,4 +190,14 @@ void * ThermalDataServer::get_in_addr(struct sockaddr * sa)
     }
 
     return &(((struct sockaddr_in6 *)sa)->sin6_addr);
+}
+
+void ThermalDataServer::setMinVisualisationValue(int min) {
+    _min = min;
+    _pBuilder->setManualTemperatureRange(_min,_max);
+}
+
+void ThermalDataServer::setMaxVisualisationValue(int max) {
+    _max = max;
+    _pBuilder->setManualTemperatureRange(_min,_max);
 }

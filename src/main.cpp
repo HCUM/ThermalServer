@@ -41,6 +41,7 @@
 #include "Server.h"
 #include "worker.h"
 #include "ThermalDataServer.h"
+#include "mainwindow.h"
 
 
 //UI
@@ -53,6 +54,9 @@
 #include <QDebug>
 #include <QBoxLayout>
 #include <QPushButton>
+#include <QLabel>
+#include <QTimer>
+
 
 #include <QApplication>
 
@@ -76,9 +80,6 @@ bool record = false;
 static int cnt = 0;
 CVImageWidget* imageWidget = NULL;
 
-//Todo: seperate to other thread
-int client_fd;
-
 
 Server* server = NULL;
 unsigned char* bufferRaw;
@@ -86,12 +87,9 @@ unsigned char* bufferRaw;
 
 //ToDo: Write a Header file
 int serializePPM(const char* filename, void* buffer, unsigned int width, unsigned int height, bool increasingOrder);
-int displayImage(const char* filename);
 
 
-//ToDo: test that shit temp:
-//_iBuilder->setManualTemperatureRange(25.0f, 40.0f);
-
+cv::Mat *image;
 
 
 
@@ -148,13 +146,14 @@ void cbOnThermalFrame(unsigned short* image, unsigned int w, unsigned int h)
 
     //_viewer.draw(_bufferThermal, _iBuilder->getStride(), h, 3);
 
+
+
       /**
-    static int frame = 0;
+      static int frame = 0;
     if((frame++)%80==0)
     {
       cout << "Frame rate: " << _imager->getAverageFramerate() << " fps" << endl;
-    }
-**/
+    }**/
   }
 
     char filename[] = "/home/pascalknierim/Desktop/tmp.ppm";
@@ -181,13 +180,13 @@ int serializePPM(const char* filename, void* buffer, unsigned int width, unsigne
         rowStart = (width * 3 * (height - 1));
         rowInc = -width * 3;
     }
-    FILE *pFile;
+    //FILE *pFile;
 
-    pFile = fopen(filename, "wb");
-    if (pFile == NULL) return 0;
+    //pFile = fopen(filename, "wb");
+    //if (pFile == NULL) return 0;
 
     // Write header
-    fprintf(pFile, "P6\n%d %d\n255\n", width, height);
+    //fprintf(pFile, "P6\n%d %d\n255\n", width, height);
     //fprintf(pFile, "P6 %d %d 255", width, height);
 
 
@@ -206,44 +205,48 @@ int serializePPM(const char* filename, void* buffer, unsigned int width, unsigne
     {
         for (j=0; j<width; j++)
         {
-            putc(buf[0], pFile); /* b */
-            putc(buf[1], pFile); /* g */
-            putc(buf[2], pFile); /* r */
+            Scalar color = Scalar(buf[0],buf[1],buf[2]);
+
+            Vec3b intensity;
+            intensity.val[2]= buf[0];
+            intensity.val[1]=buf[1];
+            intensity.val[0]= buf[2];
+
+            image->at<Vec3b>(i,j) = intensity;
+
+            //image.at<short>(i,j) = buf[0];
+            //putc(buf[0], pFile); /* b */
+            //putc(buf[1], pFile); /* g */
+            //putc(buf[2], pFile); /* r */
             buf += 3;
+
+
+
         }
         /* Move to next line */
         buf += 2 * rowInc;
     }
 
-    fclose(pFile);
-    displayImage(filename);
 
-    return 1;
-}
+    //class data members of ints
+    int total = image->cols * image->rows;
+    std::vector<uchar> vec(image->data, image->data + total);
 
-int displayImage(const char* filename){
+    std::vector<uchar> mybuf;
+    imencode( ".jpg", image->clone(), mybuf);
+    server->buf = mybuf;
 
-    Mat image;
-    image = imread(filename);   // Read the file
 
-    if(! image.data )                              // Check for invalid input
-    {
-        cout <<  "Could not open or find the image" << std::endl ;
-        return -1;
-    }
-
-    std::vector<uchar> buf;
-    imencode( ".jpg", image, buf);
-    server->buf = buf;
 
     try {
-        imageWidget->showImage(image);
+        imageWidget->showImage(image->clone());
     }catch (...){
         cout <<  "Could not render image" << endl ;
     }
 
-
+    return 1;
 }
+
 
 void cbPalette()
 {
@@ -258,9 +261,6 @@ void cbChannel()
 {
   if(_imager->hasBispectralTechnology()) _showVisibleChannel = !_showVisibleChannel;
 }
-
-
-
 
 
 
@@ -284,48 +284,14 @@ int main (int argc, char* argv[])
 
 
 
+    image = new Mat(_imager->getHeight(), _imager->getWidth(), CV_8UC3);
 
 
     QApplication app(argc, argv);
-    QMainWindow window;
-
-    // Create the MainGrid
-    QGridLayout* mainGrid = new QGridLayout();
 
     imageWidget = new CVImageWidget();
-    mainGrid->addWidget((QWidget*) imageWidget,1,1);
-    ((QWidget*) imageWidget)->show();
 
-
-
-
-
-
-    QWidget *w = new QWidget;
-    QPushButton *button1 = new QPushButton("One");
-    QPushButton *button2 = new QPushButton("Two");
-    QPushButton *button3 = new QPushButton("Three");
-    QPushButton *button4 = new QPushButton("Four");
-    QPushButton *button5 = new QPushButton("Five");
-
-    QHBoxLayout *layout = new QHBoxLayout;
-    layout->addWidget(button1);
-    layout->addWidget(button2);
-    layout->addWidget(button3);
-    layout->addWidget(button4);
-    layout->addWidget(button5);
-
-    w->setLayout(layout);
-    w->show();
-
-    mainGrid->addWidget(w,2,2);
-
-
-
-    window.setCentralWidget(new QWidget);
-    window.centralWidget()->setLayout(mainGrid);
-
-    window.show();
+    MainWindow *window = new MainWindow(imageWidget);
 
 
     cout << "Thermal channel: " << _imager->getWidth() << "x" << _imager->getHeight() << "@" << _imager->getFramerate() << "Hz" << endl;
@@ -345,7 +311,6 @@ int main (int argc, char* argv[])
 
     _iBuilder = new ImageBuilder();
     _iBuilder->setPaletteScalingMethod(eManual);
-
     _iBuilder->setManualTemperatureRange(15.0f, 40.0f);
 
 
@@ -353,12 +318,6 @@ int main (int argc, char* argv[])
 
     server = new Server();
     server->start();
-
-
-    if (client_fd == -1) {
-        perror("Can't accept");
-       // continue;
-    }
 
 
 
@@ -372,7 +331,6 @@ int main (int argc, char* argv[])
 
 
     worker* worker1 = new worker(_imager, bufferRaw);
-
     thread* workerThread = new thread();
     std::thread tmp(&worker::start, worker1);
     workerThread->swap(tmp);
@@ -387,34 +345,20 @@ int main (int argc, char* argv[])
     tdsThread->swap(tdsT);
     tdsThread->detach();
 
-
-
-
-
     // Add some logic
     QObject::connect(imageWidget, SIGNAL(valueChanged(QPoint, QPoint)), tds, SLOT(setTemperatureLine(QPoint, QPoint)));
+    QObject::connect(tds, SIGNAL(maxTempChanged(float)), window, SLOT(setMaxChangeValue(float)));
+    QObject::connect(window, SIGNAL (minValueChanged(int)), tds, SLOT(setMinVisualisationValue(int)));
+    QObject::connect(window, SIGNAL (maxValueChanged(int)), tds, SLOT(setMaxVisualisationValue(int)));
 
+    int ret = app.exec();
 
+    printf("Exiting application\n");
+    delete [] bufferRaw;
+    if(_bufferThermal) delete [] _bufferThermal;
+    if(_bufferVisible) delete [] _bufferVisible;
+    delete _imager;
+    delete _iBuilder;
 
-
-/*
-       while (1){//_viewer.isAlive()) {
-           //Render image
-           _imager->getFrame(bufferRaw);
-           _imager->process(bufferRaw);
-           _imager->releaseFrame();
-
-       }
-
-*/
-    /*
-  delete [] bufferRaw;
-  if(_bufferThermal) delete [] _bufferThermal;
-  if(_bufferVisible) delete [] _bufferVisible;
-
-  delete _imager;
-  delete _iBuilder;*/
-
-  printf("Exiting application\n");
-  return app.exec();
+    return ret;
 }

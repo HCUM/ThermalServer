@@ -4,8 +4,6 @@
 
 #include "worker.h"
 
-
-
 worker::worker(optris::PIImager* i, unsigned char* b){
     _imager = i;
     bufferRaw = b;
@@ -19,6 +17,7 @@ void worker::start(){
         _imager->getFrame(bufferRaw);
         _imager->process(bufferRaw);
         _imager->releaseFrame();
-
     }
+
+
 }

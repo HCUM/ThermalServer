@@ -41,7 +41,6 @@ ConnectionHandler::ConnectionHandler(int _client_fd, Server* _server) {
 int status;
 void ConnectionHandler::handleConnection() {
 
-    //char filename[] = "/home/pascalknierim/Desktop/tmp.ppm";
     Mat image;
     while(1){
         try

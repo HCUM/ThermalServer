@@ -46,9 +46,6 @@ void Server::connect() {
             int client_fd = accept(sock, (struct sockaddr *) &cli_addr, &sin_len);
             printf("got connection\n");
 
-            cout << "create: " << client_fd << endl;
-
-
             ConnectionHandler* h = new ConnectionHandler(client_fd, this);
             thread* connectionThread = new thread();
             std::thread tmp(&ConnectionHandler::handleConnection, h);

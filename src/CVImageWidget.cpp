@@ -22,16 +22,18 @@ void CVImageWidget::mouseReleaseEvent(QMouseEvent *event){
     std::cout << lastPoint.x() << "," << lastPoint.y()<< std::endl;
 
     emit valueChanged(firstPoint,lastPoint);
-
-
 }
 
 
 void CVImageWidget::drawLineTo()
 {
-    QPainter painter(this);
-    painter.setPen(QPen(QColor(0,255,0), 1, Qt::SolidLine, Qt::RoundCap,
-                        Qt::RoundJoin));
+    try {
+        QPainter painter(this);
+        painter.setPen(QPen(QColor(0,255,0), 1, Qt::SolidLine, Qt::RoundCap,
+                            Qt::RoundJoin));
+        painter.drawLine(firstPoint,lastPoint);
+    } catch (...) {
+            std::cout << "catched some exception while drawing line." << std::endl;
+    }
 
-    painter.drawLine(firstPoint,lastPoint);
 }

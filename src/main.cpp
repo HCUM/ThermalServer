@@ -49,13 +49,8 @@
 #include <QQuickView>
 #include <QQmlApplicationEngine>
 #include <QGridLayout>
-#include <QGuiApplication>
-#include <QQmlApplicationEngine>
-#include <QDebug>
-#include <QBoxLayout>
-#include <QPushButton>
-#include <QLabel>
-#include <QTimer>
+#include <QStyle>
+#include <QDesktopWidget>
 
 
 #include <QApplication>
@@ -293,6 +288,13 @@ int main (int argc, char* argv[])
 
     MainWindow *window = new MainWindow(imageWidget);
 
+    window->setGeometry(
+            QStyle::alignedRect(
+                    Qt::LeftToRight,
+                    Qt::AlignCenter,
+                    window->size(),
+                    qApp->desktop()->availableGeometry()));
+    window->move(0,-100);
 
     cout << "Thermal channel: " << _imager->getWidth() << "x" << _imager->getHeight() << "@" << _imager->getFramerate() << "Hz" << endl;
 

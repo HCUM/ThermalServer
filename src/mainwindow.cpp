@@ -18,7 +18,7 @@ MainWindow::MainWindow(CVImageWidget* imageWidget )
 
 
     QWidget *w = new QWidget;
-
+/**
     QPushButton *setRangeButton = new QPushButton("Set Range");
     QPushButton *button2 = new QPushButton("Two");
     QPushButton *button3 = new QPushButton("Three");
@@ -31,10 +31,11 @@ MainWindow::MainWindow(CVImageWidget* imageWidget )
     layout->addWidget(button3);
     layout->addWidget(button4);
     layout->addWidget(button5);
-
-
-
     w->setLayout(layout);
+ **/
+
+
+
     w->show();
 
     mainGrid->addWidget(w,2,2);
@@ -43,7 +44,7 @@ MainWindow::MainWindow(CVImageWidget* imageWidget )
     QWidget *l = new QWidget;
 
     QVBoxLayout *labelLayout = new QVBoxLayout;
-    label1 = new QLabel("Temp change: nan");
+    label1 = new QLabel("Max Temp change: nan");
     labelLayout -> addWidget(label1);
 
 
@@ -63,7 +64,7 @@ MainWindow::MainWindow(CVImageWidget* imageWidget )
     QLabel *maxValueLabel = new QLabel("Maximal Value: ");
     maxValueText = new QLineEdit();
     maxValueText->setMaximumWidth(50);
-    maxValueText->setText("40");
+    maxValueText->setText("80");
 
     QHBoxLayout *maxValueLayout = new QHBoxLayout;
     maxValueLayout->addWidget(maxValueLabel);

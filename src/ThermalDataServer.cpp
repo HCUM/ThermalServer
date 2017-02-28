@@ -144,7 +144,7 @@ ThermalDataServer::ThermalDataServer(optris::ImageBuilder *pBuilder) {
     addr_size = sizeof client_addr;
 
     _min = 15;
-    _max = 40;
+    _max = 80;
 
     timer = new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(updateStationaryState()));

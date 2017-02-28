@@ -29,7 +29,6 @@ void ThermalDataServer::updateStationaryState(){
 
     if(reset){
         reset = false;
-        std::cout << " reset" << std::endl;
         float temp = 0;
         for (auto &point : line) // access by reference to avoid copying
         {
@@ -61,7 +60,7 @@ void ThermalDataServer::setTemperatureLine(QPoint start, QPoint end)
     line.clear();
     std::cout << "calculate new gradient line." << std::endl;
     reset = true;
-    timer->start(5000);
+    timer->start(30000);
 
 
     // calculate line with Bresenham
@@ -145,6 +144,8 @@ ThermalDataServer::ThermalDataServer(optris::ImageBuilder *pBuilder) {
 
     _min = 15;
     _max = 80;
+    pBuilder->setManualTemperatureRange(_min, _max);
+
 
     timer = new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(updateStationaryState()));

@@ -31,7 +31,6 @@ public:
 
 
 public:
-    Server();
     void start();
 
 private:

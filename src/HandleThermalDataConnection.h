@@ -22,12 +22,18 @@
 #include <ctime>
 
 #include <stdlib.h>
+#include <iomanip> // setprecision
 
 typedef std::int64_t size_type;
 
 class HandleThermalDataConnection {
 
+
+
 private:
+    //length in mm
+    float tubeLenght = 220;
+
     int _client_fd;
     ThermalDataServer* _server;
 
@@ -66,11 +72,28 @@ public:
                 cout << "export thermal data" << endl;
                 std::ofstream tempFile(str);
                 float temp = 0;
+
+                //position:
+                int values = _server->line.size();
+                float steps = tubeLenght/values;
+
+                for(int i = 0; i<values; i++){
+                    tempFile <<fixed << setprecision(3) << i*steps << ", " ;
+                }
+
+                //new line
+                tempFile << "\r\n";
+
+                // Temp Value
                 for (auto &point : _server->line) // access by reference to avoid copying
                 {
                     temp = _server->_pBuilder->getTemperatureAt(point.x(), point.y());
                     tempFile << temp << ", ";
                 }
+
+
+
+
                 tempFile.close();
             }
 
@@ -92,7 +115,6 @@ public:
             }
 
             if(buffer[0] == 'M') {
-                cout << "send MaxCahnge" << endl;
                 send( _client_fd, &(_server->maxChange), sizeof( float ) ,0);
             }
 

@@ -71,11 +71,11 @@ void Server::start(){
     t.swap(tmp);
 }
 
-
+/**
 Server::Server() {
     printf("Create new Server\n");
     static int i = 5;
     printf("Server created\n");
 }
-
+**/
 

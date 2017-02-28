@@ -263,14 +263,15 @@ int main (int argc, char* argv[])
 {
   if(argc!=2)
   {
-    cout << "usage: " << argv[0] << " <xml configuration file>" << endl;
-    return -1;
+    cout << " start with fixed imager " << endl;
+      _imager = new PIImager("../15030146.xml");
   }
-
+  else{
+      _imager = new PIImager(argv[1]);
+  }
   /**
    * Initialize Optris image processing chain
    */
-  _imager = new PIImager(argv[1]);
   if(_imager->getWidth()==0 || _imager->getHeight()==0)
   {
     cout << "Error: Image streams not available or wrongly configured. Check connection of camera and config file." << endl;
@@ -313,7 +314,7 @@ int main (int argc, char* argv[])
 
     _iBuilder = new ImageBuilder();
     _iBuilder->setPaletteScalingMethod(eManual);
-    _iBuilder->setManualTemperatureRange(15.0f, 40.0f);
+    _iBuilder->setManualTemperatureRange(15.0f, 80.0f);
 
 
 
@@ -323,10 +324,11 @@ int main (int argc, char* argv[])
 
 
 
-  /**
-   * Enter endless loop in order to pass raw data to Optris image processing library.
-   * Processed data are supported by the frame callback function.
-   */
+
+    /**
+     * Enter endless loop in order to pass raw data to Optris image processing library.
+     * Processed data are supported by the frame callback function.
+     */
 
 
     _imager->startStreaming();

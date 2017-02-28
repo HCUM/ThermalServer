@@ -1,0 +1,6 @@
+/Users/pascalknierim/Development/ThermalVisualization/cmake-build-debug/CMakeFiles/ThermalVisualizer.dir
+/Users/pascalknierim/Development/ThermalVisualization/cmake-build-debug/CMakeFiles/edit_cache.dir
+/Users/pascalknierim/Development/ThermalVisualization/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+/Users/pascalknierim/Development/ThermalVisualization/cmake-build-debug/CMakeFiles/mainwindow.dir
+/Users/pascalknierim/Development/ThermalVisualization/cmake-build-debug/CMakeFiles/ThermalVisualizer_automoc.dir
+/Users/pascalknierim/Development/ThermalVisualization/cmake-build-debug/CMakeFiles/mainwindow_automoc.dir

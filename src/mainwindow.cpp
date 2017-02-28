@@ -107,13 +107,11 @@ void MainWindow::setMaxChangeValue(float value) {
 
 void MainWindow::minEditingFinished() {
     int min = minValueText->text().toInt();
-    std::cout << "MainWindow::minEditingFinished, new min: " << min << std::endl;
     emit minValueChanged(min);
 }
 
 void MainWindow::maxEditingFinished() {
     int max = maxValueText->text().toInt();
-    std::cout << "MainWindow::maxEditingFinished, new max: " << max << std::endl;
     emit maxValueChanged(max);
 }
 

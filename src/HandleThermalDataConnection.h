@@ -62,14 +62,23 @@ public:
             if(buffer[0] == 'E'){
                 time_t rawtime;
                 struct tm * timeinfo;
-                char bufferTime[80];
+                char bufferTime[128];
 
                 time (&rawtime);
                 timeinfo = localtime(&rawtime);
-                strftime(bufferTime,80,"~/export/thermalExport%d-%m-%Y %I:%M:%S.csv",timeinfo);
-                std::string str(bufferTime);
 
-                cout << "export thermal data" << endl;
+                char path[128];
+                char *home = getenv ("HOME");
+                if (home != NULL) {
+                    snprintf(path, sizeof(path), "%s/export", home);
+
+
+                    strftime(bufferTime, 80, "/export/thermalExport%d-%m-%Y %I:%M:%S.csv", timeinfo);
+                    snprintf(path, sizeof(path), "%s%s", home, bufferTime);
+                }
+                std::string str(path);
+
+                //cout << "export thermal data to "<< str << endl;
                 std::ofstream tempFile(str);
                 float temp = 0;
 

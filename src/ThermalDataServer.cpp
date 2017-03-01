@@ -154,11 +154,20 @@ ThermalDataServer::ThermalDataServer(optris::ImageBuilder *pBuilder) {
 
 void ThermalDataServer::start() {
 
-    const int dir_err = mkdir("~/export/", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-/**    if (-1 == dir_err)
-    {
-        printf("Created directory, it was probably already there\n");
-    }**/
+
+    char path[128];
+    char *home = getenv ("HOME");
+    if (home != NULL) {
+        snprintf(path, sizeof(path), "%s/export", home);
+        const int dir_err = mkdir(path, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+        if (-1 == dir_err)
+        {
+            printf("Try to create directory, it was probably already there\n");
+        }
+    }else {
+        printf("Failed to create export folder");
+    }
+
 
     while(1){
         // Accept a new connection and return back the socket desciptor

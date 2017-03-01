@@ -43,7 +43,7 @@ target_link_libraries (mainwindow Qt5::Widgets)
 target_link_libraries (mainwindow Qt5::Quick)
 
 
-SET(CMAKE_CXX_FLAGS "-Wno-write-strings -fpermissive -malign-double -pthread")
+SET(CMAKE_CXX_FLAGS "-std=c++11 -Wno-write-strings -fpermissive -malign-double -pthread")
 
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/../../linux ${PROJECT_SOURCE_DIR}/../include)
 LINK_DIRECTORIES(${PROJECT_SOURCE_DIR}/../lib)

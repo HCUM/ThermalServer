@@ -32,7 +32,7 @@ class HandleThermalDataConnection {
 
 private:
     //length in mm
-    float tubeLenght = 220;
+    float tubeLenght = 212;
 
     int _client_fd;
     ThermalDataServer* _server;
@@ -66,7 +66,7 @@ public:
 
                 time (&rawtime);
                 timeinfo = localtime(&rawtime);
-                strftime(bufferTime,80,"/tmp/export/thermalExport%d-%m-%Y %I:%M:%S.csv",timeinfo);
+                strftime(bufferTime,80,"~/export/thermalExport%d-%m-%Y %I:%M:%S.csv",timeinfo);
                 std::string str(bufferTime);
 
                 cout << "export thermal data" << endl;

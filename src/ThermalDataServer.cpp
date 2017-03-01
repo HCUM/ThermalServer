@@ -58,7 +58,6 @@ void ThermalDataServer::updateStationaryState(){
 void ThermalDataServer::setTemperatureLine(QPoint start, QPoint end)
 {
     line.clear();
-    std::cout << "calculate new gradient line." << std::endl;
     reset = true;
     timer->start(30000);
 
@@ -155,11 +154,11 @@ ThermalDataServer::ThermalDataServer(optris::ImageBuilder *pBuilder) {
 
 void ThermalDataServer::start() {
 
-    const int dir_err = mkdir("/tmp/export/", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-    if (-1 == dir_err)
+    const int dir_err = mkdir("~/export/", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+/**    if (-1 == dir_err)
     {
-        printf("Error creating directory, it was probably already there\n");
-    }
+        printf("Created directory, it was probably already there\n");
+    }**/
 
     while(1){
         // Accept a new connection and return back the socket desciptor

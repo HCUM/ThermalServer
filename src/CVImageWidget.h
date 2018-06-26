@@ -4,6 +4,8 @@
 #include <QPainter>
 #include <opencv2/opencv.hpp>
 #include <QMouseEvent>
+#include <iostream>
+#include "Settings.h"
 
 
 class CVImageWidget : public QWidget
@@ -17,13 +19,15 @@ public:
     QSize minimumSizeHint() const { return _qimage.size(); }
 
 public slots:
-
+    // void setThermalImage(unsigned short *img);
     void showImage(const cv::Mat& image);
 
 signals:
     void valueChanged(QPoint start, QPoint end);
 
 protected:
+    std::string TAG = "[CVImageWidget]: ";
+
     void mousePressEvent(QMouseEvent *event) override;
     void mouseMoveEvent(QMouseEvent *event) override;
     void mouseReleaseEvent(QMouseEvent *event) override;

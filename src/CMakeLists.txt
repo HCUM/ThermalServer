@@ -1,69 +1,54 @@
-#cmake_minimum_required(VERSION 3.5)
-#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-#set(SOURCE_FILES main.cpp)
-#add_executable(ThermalVisualization ${SOURCE_FILES})
-
-
-
-
-
 CMAKE_MINIMUM_REQUIRED (VERSION 2.6)
 
-project(ThermalVisualization)
-SET(IMAGER_VERSION_MAJOR 0)
-SET(IMAGER_VERSION_MINOR 1)
+PROJECT(IRIMAGEROOPEXAMPLE)
 
+OPTION(USE_LIBUSB "use libusb instead of hidraw interface")
 
-set(CMAKE_PREFIX_PATH "/home/pascalknierim/Qt/5.7/gcc_64/lib/cmake")
+# QT precompiler
+set(CMAKE_AUTOMOC ON)
 
 if (APPLE)
-    include_directories(/Developer/Qt/5.6/clang_64)
-    set(CMAKE_PREFIX_PATH "/Developer/Qt/5.6/clang_64/lib/cmake")
+    include_directories(/Developer/ThermalSDK)
+    #    set(CMAKE_PREFIX_PATH "/Developer/Qt/5.6/clang_64/lib/cmake")
 endif (APPLE)
 
-find_package( OpenCV REQUIRED )
-if( OpenCV_FOUND )
-    list( APPEND ThirdParty_LIBS ${OpenCV_LIBS} )
-    include_directories( ${OpenCV_INCLUDE_DIRS} )
-endif( OpenCV_FOUND )
-
-
-
-#new changes for qt
+set(CMAKE_PREFIX_PATH "/home/pascalknierim/Qt/5.7/gcc_64/lib/cmake")
 find_package(Qt5Widgets REQUIRED)
 find_package(Qt5Quick REQUIRED)
 
-find_package(Qt5Widgets)
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTOUIC ON)
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
+SET(CMAKE_BUILD_TYPE Release)
+SET(CMAKE_C_FLAGS "-U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0")
+SET(CMAKE_CXX_FLAGS "-U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -std=c++11")
+
+IF (${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm")
+    SET(CMAKE_CXX_FLAGS "-D_GLIBCXX_USE_CXX11_ABI=0")
+ENDIF (${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm")
+
+INCLUDE_DIRECTORIES(/usr/include/libirimager ../opengl)
+LINK_DIRECTORIES(/usr/lib)
 
 add_library(mainwindow mainwindow.cpp)
 target_link_libraries (mainwindow Qt5::Widgets)
 target_link_libraries (mainwindow Qt5::Quick)
 
 
-SET(CMAKE_CXX_FLAGS "-std=c++11 -Wno-write-strings -fpermissive -malign-double -pthread")
+find_package(OpenCV REQUIRED)
+if (OpenCV_FOUND)
+    list(APPEND ThirdParty_LIBS ${OpenCV_LIBS})
+    include_directories(${OpenCV_INCLUDE_DIRS})
+endif (OpenCV_FOUND)
 
-INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/../../linux ${PROJECT_SOURCE_DIR}/../include)
-LINK_DIRECTORIES(${PROJECT_SOURCE_DIR}/../lib)
+LINK_LIBRARIES(irdirectsdk udev GL GLU glut pthread)
+#####################################################################################
+# If your applications do not rely on hidraw, use usb-1.0 as additional dependency. #
+# This needs for a library linked against usb-1.0. Take care to install the correct #
+# Debian package.                                                                   #
+#####################################################################################
+IF (USE_LIBUSB)
+    LINK_LIBRARIES(usb-1.0)
+ENDIF (USE_LIBUSB)
 
-find_package(Qt5Widgets)
-LINK_LIBRARIES(PIImager ImageProcessing udev glut GLU GL pthread)
-ADD_EXECUTABLE(ThermalVisualizer
-        Obvious2D.cpp
-        main.cpp
-        CVImageWidget.cpp CVImageWidget.h Server.cpp Server.h ConnectionHandler.cpp ConnectionHandler.h worker.cpp worker.h ThermalDataServer.cpp ThermalDataServer.h ThermalExperiment.cpp ThermalExperiment.h HandleThermalDataConnection.cpp HandleThermalDataConnection.h)
-target_link_libraries (ThermalVisualizer mainwindow ${OpenCV_LIBS})
-#target_link_libraries(ThermalVisualizer ${OpenCV_LIBS} )
+ADD_EXECUTABLE(ThermalExperimentServer main.cpp Obvious2D.cpp IRImagerGUI.cpp IRImagerHandler.cpp
+        mainwindow.cpp CVImageWidget.cpp ThermalWorker.cpp ThermalDataServer.cpp HandleThermalDataConnection.cpp StreamWorker.cpp)
 
-
-#ADD_EXECUTABLE(imager_serialize
-#			mainMinimalistic.cpp
-#)
-
-#ADD_EXECUTABLE(read_snapshot
-#			Obvious2D.cpp
-#			readSnapshot.cpp
-#)
-
+target_link_libraries(ThermalExperimentServer mainwindow ${OpenCV_LIBS})

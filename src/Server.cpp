@@ -44,15 +44,19 @@ void Server::connect() {
     {
         while (1) {
             int client_fd = accept(sock, (struct sockaddr *) &cli_addr, &sin_len);
+#if DEBUG
             printf("got connection\n");
-
+#endif
             ConnectionHandler* h = new ConnectionHandler(client_fd, this);
             thread* connectionThread = new thread();
             std::thread tmp(&ConnectionHandler::handleConnection, h);
             connectionThread->swap(tmp);
             connectionThread->detach();
 
+
+#if DEBUG
             cout << "waiting for next connection, last done" << endl;
+#endif
         }
     }
     catch (exception& e)

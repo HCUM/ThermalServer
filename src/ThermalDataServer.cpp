@@ -17,12 +17,17 @@
 #include <sys/stat.h>
 #include <ctime>
 
+
 #include <stdlib.h>
+
+#include <chrono>
+#include <thread>
 
 #include "HandleThermalDataConnection.h"
 
 
 using namespace std;
+using namespace evo;
 
 
 void ThermalDataServer::updateStationaryState(){
@@ -32,7 +37,7 @@ void ThermalDataServer::updateStationaryState(){
         float temp = 0;
         for (auto &point : line) // access by reference to avoid copying
         {
-            temp = _pBuilder->getTemperatureAt(point.x(), point.y());
+            //temp = _pBuilder->getTemperatureAt(point.x(), point.y());
             oldTempVector.push_back(temp);
         }
         return;
@@ -44,19 +49,67 @@ void ThermalDataServer::updateStationaryState(){
     float _maxChange = 0;
     for (auto &point : line) // access by reference to avoid copying
     {
-        float diff = oldTempVector.at(i) -  _pBuilder->getTemperatureAt(point.x(), point.y());
+        float diff = -1; //oldTempVector.at(i) -  _pBuilder->getTemperatureAt(point.x(), point.y());
         if(abs(diff)> _maxChange)
             _maxChange = abs(diff);
-        oldTempVector.at(i)  = _pBuilder->getTemperatureAt(point.x(), point.y());
+        //oldTempVector.at(i)  = _pBuilder->getTemperatureAt(point.x(), point.y());
         i++;
     }
     maxChange = _maxChange;
-    emit maxTempChanged(maxChange);
+    //emit maxTempChanged(maxChange);
 }
 
+void ThermalDataServer::exportData() {
+    cout << TAG << "Export Data " << endl;
+
+    time_t rawtime;
+    struct tm *timeinfo;
+    char bufferTime[128];
+
+    time(&rawtime);
+    timeinfo = localtime(&rawtime);
+
+    char path[128];
+    char *home = getenv("HOME");
+    if (home != NULL) {
+        snprintf(path, sizeof(path), "%s/export", home);
+        strftime(bufferTime, 80, "/export/thermalExport%d-%m-%Y %I:%M:%S.csv", timeinfo);
+        snprintf(path, sizeof(path), "%s%s", home, bufferTime);
+    }
+    std::string str(path);
+
+    //cout << "export thermal data to "<< str << endl;
+    std::ofstream tempFile(str);
+    float temp = 0;
+
+    //position:
+    int values = line.size();
+
+    float steps = Settings::getInstance().tubelength / values;
+
+    for (int i = 0; i < values; i++) {
+        tempFile << fixed << setprecision(3) << i * steps << ", ";
+    }
+
+    //new line
+    tempFile << "\r\n";
+
+    // Temp Value
+    for (auto &point : line) // access by reference to avoid copying
+    {
+        temp = worker->getTemperatureAt(point.x(), point.y());
+        tempFile << temp << ", ";
+    }
+
+    tempFile.close();
+
+}
 
 void ThermalDataServer::setTemperatureLine(QPoint start, QPoint end)
 {
+
+cout << TAG << "Set new Temperature Line" <<
+endl;
     line.clear();
     reset = true;
     timer->start(30000);
@@ -94,11 +147,14 @@ void ThermalDataServer::setTemperatureLine(QPoint start, QPoint end)
             y += dy2 ;
         }
     }
-
 }
 
-ThermalDataServer::ThermalDataServer(optris::ImageBuilder *pBuilder) {
-    _pBuilder = pBuilder;
+
+ThermalDataServer::ThermalDataServer(Worker *_worker) { //ImageBuilder *pBuilder) {
+
+    worker = _worker;
+
+
 
     // Before using hint you have to make sure that the data structure is empty
     memset(& hints, 0, sizeof hints);
@@ -106,9 +162,12 @@ ThermalDataServer::ThermalDataServer(optris::ImageBuilder *pBuilder) {
     hints.ai_family = AF_UNSPEC; // We don't care V4 AF_INET or 6 AF_INET6
     hints.ai_socktype = SOCK_STREAM; // TCP Socket SOCK_DGRAM
     hints.ai_flags = AI_PASSIVE;
+    //hints.ai_flags = SO_REUSEADDR;
 
     // Fill the res data structure and make sure that the results make sense.
     status = getaddrinfo(NULL, "8888" , &hints, &res);
+
+
     if(status != 0)
     {
         fprintf(stderr,"getaddrinfo error: %s\n",gai_strerror(status));
@@ -116,6 +175,17 @@ ThermalDataServer::ThermalDataServer(optris::ImageBuilder *pBuilder) {
 
     // Create Socket and check if error occured afterwards
     listner = socket(res->ai_family,res->ai_socktype, res->ai_protocol);
+
+    //listner = socket(AF_INET, SOCK_STREAM, 0);
+
+    int reuse = 1;
+
+    //  if (setsockopt(listner, SOL_SOCKET, SO_REUSEADDR, (const char*)&reuse, sizeof(reuse)) < 0)
+    //      perror("setsockopt(SO_REUSEADDR) failed");
+
+    if (setsockopt(listner, SOL_SOCKET, SO_REUSEPORT, (const char *) &reuse, sizeof(reuse)) < 0)
+        perror("setsockopt(SO_REUSEPORT) failed");
+
     if(listner < 0 )
     {
         fprintf(stderr,"socket error: %s\n",gai_strerror(status));
@@ -123,9 +193,14 @@ ThermalDataServer::ThermalDataServer(optris::ImageBuilder *pBuilder) {
 
     // Bind the socket to the address of my local machine and port number
     status = bind(listner, res->ai_addr, res->ai_addrlen);
-    if(status < 0)
+
+    while (status < 0)
     {
         fprintf(stderr,"bind: %s\n",gai_strerror(status));
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(5000));
+        cout << TAG << ("Try to bind again, please wait...") << endl;
+        status = bind(listner, res->ai_addr, res->ai_addrlen);
     }
 
     status = listen(listner, 10);
@@ -140,10 +215,6 @@ ThermalDataServer::ThermalDataServer(optris::ImageBuilder *pBuilder) {
 
     // Calculate the size of the data structure
     addr_size = sizeof client_addr;
-
-    _min = 15;
-    _max = 80;
-    pBuilder->setManualTemperatureRange(_min, _max);
 
 
     timer = new QTimer(this);
@@ -160,10 +231,6 @@ void ThermalDataServer::start() {
     if (home != NULL) {
         snprintf(path, sizeof(path), "%s/export", home);
         const int dir_err = mkdir(path, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-        if (-1 == dir_err)
-        {
-            printf("Try to create directory, it was probably already there\n");
-        }
     }else {
         printf("Failed to create export folder");
     }
@@ -171,7 +238,7 @@ void ThermalDataServer::start() {
 
     while(1){
         // Accept a new connection and return back the socket desciptor
-        printf("I am now accepting connections ...\n");
+        //cout << TAG + "Server is accepting connections. " << endl;
         new_conn_fd = accept(listner, (struct sockaddr *) & client_addr, &addr_size);
         if(new_conn_fd < 0)
         {
@@ -180,11 +247,10 @@ void ThermalDataServer::start() {
         }
 
         inet_ntop(client_addr.ss_family, get_in_addr((struct sockaddr *) &client_addr),s ,sizeof s);
-        printf("I am now connected to %s \n",s);
 
         HandleThermalDataConnection* h = new HandleThermalDataConnection(new_conn_fd, this);
         std::thread* connectionThread = new std::thread();
-        std::thread tmp(&HandleThermalDataConnection::handleConnection, h);
+        std::thread tmp(&HandleThermalDataConnection::start, h);
         connectionThread->swap(tmp);
         connectionThread->detach();
     }
@@ -201,12 +267,14 @@ void * ThermalDataServer::get_in_addr(struct sockaddr * sa)
     return &(((struct sockaddr_in6 *)sa)->sin6_addr);
 }
 
+
+
+/*
 void ThermalDataServer::setMinVisualisationValue(int min) {
     _min = min;
-    _pBuilder->setManualTemperatureRange(_min,_max);
 }
 
 void ThermalDataServer::setMaxVisualisationValue(int max) {
     _max = max;
-    _pBuilder->setManualTemperatureRange(_min,_max);
 }
+*/

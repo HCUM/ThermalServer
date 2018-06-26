@@ -12,7 +12,7 @@ class ConnectionHandler {
 
 public:
 
-    ConnectionHandler::ConnectionHandler(int _client_fd, Server* _server);
+    ConnectionHandler(int _client_fd, Server *_server);
     void handleConnection();
     int client_fd;
 

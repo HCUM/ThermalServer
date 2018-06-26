@@ -18,10 +18,12 @@
 #include <QObject>
 #include "ImageBuilder.h"
 #include <QTimer>
-
+#include "ThermalWorker.h"
+#include <ctime>
 
 
 using namespace std;
+using namespace evo;
 
 class ThermalDataServer : public QObject {
 Q_OBJECT
@@ -30,20 +32,22 @@ Q_OBJECT
 public slots:
     void setTemperatureLine(QPoint start, QPoint end);
     void updateStationaryState();
-    void setMinVisualisationValue(int min);
-    void setMaxVisualisationValue(int max);
+
+    void exportData();
+    // void setMinVisualisationValue(int min);
+    // void setMaxVisualisationValue(int max);
 
 signals:
     void  maxTempChanged(float maxChange);
 
 public:
-    ThermalDataServer(optris::ImageBuilder *pBuilder);
+    ThermalDataServer(Worker *_worker); //ImageBuilder *pBuilder);
     void start();
     std::vector<QPoint> line;
-    optris::ImageBuilder *_pBuilder;
+    Worker *worker;
     float maxChange = 0;
-    int _min;
-    int _max;
+
+    string TAG = "[ThermalDataServer]: ";
 
 private:
     void * get_in_addr(struct sockaddr * sa);

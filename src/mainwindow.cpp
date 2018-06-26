@@ -1,10 +1,4 @@
-#include <QGridLayout>
-#include <QPushButton>
-#include <QLabel>
 #include "mainwindow.h"
-#include <QLineEdit>
-
-#include "CVImageWidget.h"
 
 MainWindow::MainWindow(CVImageWidget* imageWidget )
 {
@@ -18,21 +12,29 @@ MainWindow::MainWindow(CVImageWidget* imageWidget )
 
 
     QWidget *w = new QWidget;
+
+    recalibrate = new QPushButton("Recalibrate");
+    exportData = new QPushButton("Export");
+
 /**
-    QPushButton *setRangeButton = new QPushButton("Set Range");
-    QPushButton *button2 = new QPushButton("Two");
     QPushButton *button3 = new QPushButton("Three");
     QPushButton *button4 = new QPushButton("Four");
     QPushButton *button5 = new QPushButton("Five");
-
-    QHBoxLayout *layout = new QHBoxLayout;
-    layout->addWidget(setRangeButton);
-    layout->addWidget(button2);
+ **/
+    //QHBoxLayout *layout = new QHBoxLayout;
+    // layout->addWidget(recalibrate);
+/**    layout->addWidget(button2);
     layout->addWidget(button3);
     layout->addWidget(button4);
     layout->addWidget(button5);
-    w->setLayout(layout);
- **/
+    **/
+    //w->setLayout(layout);
+
+
+
+    horizontalBox = new QCheckBox("Limit to Horizontal");
+    horizontalBox->setCheckState(Qt::Checked);
+    QObject::connect(horizontalBox, SIGNAL(stateChanged(int)), this, SLOT(checkboxChanged(int)));
 
 
 
@@ -42,12 +44,19 @@ MainWindow::MainWindow(CVImageWidget* imageWidget )
 
 
     QWidget *l = new QWidget;
-
     QVBoxLayout *labelLayout = new QVBoxLayout;
-    label1 = new QLabel("Max Temp change: nan");
-    labelLayout -> addWidget(label1);
+    if(Settings::getInstance().getDebug()) {
+        labelLayout->addWidget(exportData);
+    }
+    labelLayout->addWidget(recalibrate);
+    labelLayout->addWidget(horizontalBox);
 
-
+/*
+    if(Settings::getInstance().getDebug()) {
+        label1 = new QLabel("Max Temp change: nan");
+        labelLayout->addWidget(label1);
+    }
+*/
     //min value
     QLabel *minValueLabel = new QLabel("Minimal Value: ");
     minValueText = new QLineEdit();
@@ -114,4 +123,10 @@ void MainWindow::maxEditingFinished() {
     int max = maxValueText->text().toInt();
     emit maxValueChanged(max);
 }
+
+void MainWindow::checkboxChanged(int value) {
+
+    Settings::getInstance().onlyHorizontal = value;
+}
+
 

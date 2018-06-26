@@ -1,0 +1,2 @@
+/usr/bin/ar qc libworker.a  CMakeFiles/worker.dir/Worker.cpp.o CMakeFiles/worker.dir/worker_automoc.cpp.o
+/usr/bin/ranlib libworker.a

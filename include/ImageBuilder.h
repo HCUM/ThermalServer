@@ -1,66 +1,91 @@
 /******************************************************************************
- * Copyright (c) 2012, 2013 All Rights Reserved, http://www.optris.de         *                                                                          *
- *  Optris GmbH                                                               *
- *  Ferdinand-Buisson-Str. 14                                                 *
- *  13127 Berlin                                                              *
+ * Copyright (c) 2012-2017 All Rights Reserved, http://www.evocortex.com      *
+ *  Evocortex GmbH                                                            *
+ *  Emilienstr. 1                                                             *
+ *  90489 Nürnberg                                                            *
  *  Germany                                                                   *
  *                                                                            *
  * Contributors:                                                              *
- * - Linux platform development in cooperation with Nuremberg Institute of    *
- *   Technology Georg Simon Ohm, http//www.th-nuernberg.de                    *
- * - Linux 64-Bit platform supported by Fraunhofer IPA,                       *
- *   http://www.ipa.fraunhofer.de                                             *
+ *  Initial version for Linux 64-Bit platform supported by Fraunhofer IPA,    *
+ *  http://www.ipa.fraunhofer.de                                              *
  *****************************************************************************/
 
 #ifndef OPTRISIMAGEBUILDER_H
 #define OPTRISIMAGEBUILDER_H
 
-namespace optris
+#include <cstddef>
+
+#ifdef WIN32
+#ifdef LIBIRIMAGER_EXPORTS
+#define __IMAGEBUILDER_API__ __declspec(dllexport)
+#else
+#define __IMAGEBUILDER_API__ __declspec(dllimport) 
+#endif
+#else
+#define __IMAGEBUILDER_API__
+#endif
+
+namespace evo
 {
 
+/**
+ * Rectangular area having extremal temperature, i.e., minimum or maximum temperature in a certain image
+ */
 struct ExtremalRegion
 {
-  float t;
-  int u1;
-  int v1;
-  int u2;
-  int v2;
+    float t; /**< mean temperature */
+    int u1;  /**< left-most column index */
+    int v1;  /**< lower row index */
+    int u2;  /**< right-most column index */
+    int v2;  /**< upper row index */
 };
 
 enum EnumOptrisColoringPalette{eAlarmBlue   = 1,
-							   eAlarmBlueHi = 2,
-							   eGrayBW      = 3,
-							   eGrayWB      = 4,
-							   eAlarmGreen  = 5,
-							   eIron        = 6,
-							   eIronHi      = 7,
-							   eMedical     = 8,
-							   eRainbow     = 9,
-							   eRainbowHi   = 10,
-							   eAlarmRed    = 11};
+    eAlarmBlueHi = 2,
+    eGrayBW = 3,
+    eGrayWB = 4,
+    eAlarmGreen = 5,
+    eIron = 6,
+    eIronHi = 7,
+    eMedical = 8,
+    eRainbow = 9,
+    eRainbowHi = 10,
+    eAlarmRed = 11
+};
 
+/**
+ * False color conversion strategies
+ * eManual: user-defined upper and lower limit (fixed values)
+ * eMinMax: dynamic determination of minimum and maximum temperature as upper and lower limit
+ * eSigma1: dynamic determination of upper and lower limit from standard deviation of temperature image
+ * eSigma3: same as eSigma1, but with factor 3
+ */
 enum EnumOptrisPaletteScalingMethod{eManual = 1,
-									eMinMax = 2,
-									eSigma1 = 3,
-									eSigma3 = 4};
+    eMinMax = 2,
+    eSigma1 = 3,
+    eSigma3 = 4
+};
 
 typedef unsigned char (*paletteTable)[3];
 
 /**
- * Image creation module for displaying purposes
- * @author Stefan May (Nuremberg Institute of Technology Georg Simon Ohm), Matthias Wiedemann (Optris GmbH)
+ * @class ImageBuilder
+ * @brief Image creation module for displaying purposes
+ * @author Stefan May (Evocortex GmbH), Matthias Wiedemann (Optris GmbH)
  */
-class ImageBuilder
+    class __IMAGEBUILDER_API__ ImageBuilder
 {
+
 public:
+
   /**
    * Standard constructor
    */
-	ImageBuilder(bool alignStride=true);
+  ImageBuilder(bool alignStride = true);
 
-  /**
-   * Standard destructor
-   */
+        /**
+         * Destructor
+         */
   ~ImageBuilder();
 
   /**
@@ -106,7 +131,7 @@ public:
    * @param[in] v2 v-component of image coordinate, i. e. row of 2nd point
    * @return mean temperature
    */
-  float getMeanTemperature(int u1, int v1, int u2, int v2);
+  float getMeanTemperature(unsigned int u1, unsigned int v1, unsigned int u2, unsigned int v2);
 
   /**
    * Get region of minimum/maximum temperature with given radius
@@ -114,7 +139,7 @@ public:
    * @param[out] minRegion Region of minimum mean temperature
    * @param[out] maxRegion Region of maximum mean temperature
    */
-  void getMinMaxRegion(int radius, ExtremalRegion* minRegion, ExtremalRegion* maxRegion);
+  void getMinMaxRegion(unsigned int radius, ExtremalRegion *minRegion, ExtremalRegion *maxRegion);
 
   /**
    * Set temperature range for manual scaling method
@@ -171,11 +196,32 @@ public:
    */
   void getPaletteTable(paletteTable& table);
 
-  /**
-   * Image conversion to rgb
-   * @param[out] dst Destination image
-   */
-  void convertTemperatureToPaletteImage(unsigned char* dst);
+        /**
+         * Fill lookup table for false color conversion.
+         * @param[out] lut lookup table
+         */
+        void fillPaletteLookup(unsigned int lut[65536]);
+
+        /**
+         * Image conversion to rgb
+         * @param[out] dst Destination image
+         * @param[in] by default columns are multiple of 4, i.e., stride is added
+         */
+        void convertTemperatureToPaletteImage(unsigned char *dst, bool ignoreStride = false);
+
+        /**
+         * Image conversion to rgb with lookup table. This method is efficient, but works only with fixed temperature ranges (manual mode).
+         * @param[in] lut lookup table
+         * @param[out] dst Destination image
+         */
+        void convertTemperatureToPaletteImage(unsigned int lut[65536], unsigned char *dst);
+
+        /**
+         * @param[in] w width of palette image
+         * @param[in] h height of palette image
+         * @param[out] img Destination image (size needs to be 3*w*h)
+         */
+        void getPaletteBar(unsigned int w, unsigned int h, unsigned char *&img);
 
   /**
    * calculate histogram
@@ -186,26 +232,60 @@ public:
    */
   void calcHistogram(unsigned int* hist, unsigned int histsize, int tMin, int tMax);
 
-  /**
-   * Draw crosshair to the center of image
-   * @param[in/out] img image in RGB or RGBA format
-   * @param[in] x x-position in image
-   * @param[out] y y-position in image
-   */
-  void drawCrosshair(unsigned char* img, unsigned int x, unsigned int y, unsigned channels=3);
+        /**
+         * Draw crosshair to the center of image
+         * @param[in/out] img image in RGB or RGBA format
+         * @param[in] x x-position in image
+         * @param[in] y y-position in image
+         * @param[in] rgb RGB drawing color
+         */
+        void drawCrosshair(unsigned char *img, unsigned int x, unsigned int y, unsigned char rgb[3] = NULL);
 
-  /**
-   * Convert YUV422 image to RGB format (8-Bit per channel)
-   * @param[in] src source image
-   * @param[out] dst destination image
-   * @param w image width
-   * @param h image height
-   */
+        /**
+         * Convert YUV422 image to RGB format (8-Bit per channel)
+         * @param[in] src source image
+         * @param[out] dst destination image
+         * @param[in] w image width
+         * @param[in] h image height
+         */
   void yuv422torgb24(const unsigned char* src, unsigned char* dst, unsigned int w, unsigned int h);
+
+        /**
+         * Convert palette image to ppm format
+         * @param[out] ppm pointer to data container (is instantiated internally!). Delete pointer after use.
+         * @param[out] size size of allocated data container
+         * @param[in] buffer buffer with palette image data
+         * @param[in] width width of palette image
+         * @param[in] height height of palette image
+         */
+        void convert2PPM(unsigned char *&ppm, unsigned int *size, unsigned char *buffer, unsigned int width,
+                         unsigned int height);
+
+        /**
+         * Serialize data to PPM-format
+         * @param[in] filename filename
+         * @param[in] buffer RGB image data
+         * @param[in] width width of image
+         * @param[in] height height of image
+         * @return success
+         */
+        int serializePPM(const char *filename, unsigned char *buffer, unsigned int width, unsigned int height);
+
+        /**
+         * Read PPM (P3) format
+         * @param[in] filename filename
+         * @param[in] buffer RGB image buffer (instantiated in method)
+         * @param[in] width width of read image
+         * @param[in] height height of read image
+         */
+        int readPPM3(const char *filename, unsigned char **buffer, unsigned int *width, unsigned int *height);
 
 private:
 
-  void calculateIntegralImage();
+        /**
+         * Calculate image integral (speedup purpose)
+         */
+        void calculateIntegralImage();
 
   /**
    * Calculate scaling boundaries based on minimal and maximal temperature
@@ -258,9 +338,9 @@ private:
    */
   unsigned int  _stride;
 
-  /**
-   * Real size if Imager-Matrix
-   */
+        /**
+         * Real size of Imager-Matrix
+         */
   unsigned int _size;
 
   /**
@@ -277,7 +357,8 @@ private:
    * Flag for recomputation of integral image
    */
   bool _integralIsDirty;
-};
+
+    };
 
 }
 

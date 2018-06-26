@@ -1,6 +1,11 @@
 #include "CVImageWidget.h"
 
 
+/*
+void setThermalImage(unsigned short *img){
+    std::cout << "slot setNEWIMAGE"<< std::endl;
+}
+*/
 
 void CVImageWidget::showImage(const cv::Mat& image) {
     // Convert the image to the RGB888 format
@@ -18,13 +23,14 @@ void CVImageWidget::showImage(const cv::Mat& image) {
     // Assign OpenCV's image buffer to the QImage. Note that the bytesPerLine parameter
     // (http://qt-project.org/doc/qt-4.8/qimage.html#QImage-6) is 3*width because each pixel
     // has three bytes.
-    _qimage = QImage(_tmp.data, _tmp.cols, _tmp.rows, _tmp.cols*3, QImage::Format_RGB888);//.scaled(image.cols*2, image.rows*2, Qt::KeepAspectRatio);
+    _qimage = QImage(_tmp.data, _tmp.cols, _tmp.rows, _tmp.cols * 3,
+                     QImage::Format_RGB888);//.scaled(image.cols*2, image.rows*2, Qt::KeepAspectRatio);
 
 
-    _qimageS = _qimage.scaled(image.cols*2, image.rows*2, Qt::KeepAspectRatio);
+    _qimageS = _qimage.scaled(image.cols * 2, image.rows * 2, Qt::KeepAspectRatio);
 
 
-    this->setFixedSize(image.cols*2, image.rows*2);
+    this->setFixedSize(image.cols * 2, image.rows * 2);
     update();
 }
 
@@ -40,10 +46,23 @@ void CVImageWidget::mousePressEvent(QMouseEvent *event)
 void CVImageWidget::mouseMoveEvent(QMouseEvent *event)
 {
     if ((event->buttons() & Qt::LeftButton) && scribbling)
-    lastPoint = event->pos();
+        if (Settings::getInstance().onlyHorizontal) {
+            QPoint tmp = event->pos();
+            tmp.setY(firstPoint.y());
+            lastPoint = tmp;
+        } else
+            lastPoint = event->pos();
 }
 
 void CVImageWidget::mouseReleaseEvent(QMouseEvent *event){
+
+    if(firstPoint.x()>lastPoint.x()){
+        std::cout << TAG << "Fipping points" << std::endl;
+        QPoint tmp = firstPoint;
+        firstPoint = lastPoint;
+        lastPoint = tmp;
+    }
+
     emit valueChanged(firstPoint,lastPoint);
 }
 

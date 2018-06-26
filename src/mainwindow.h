@@ -5,6 +5,14 @@
 #include <QLabel>
 #include "CVImageWidget.h"
 #include <QLineEdit>
+#include "Settings.h"
+#include <QGridLayout>
+#include <QPushButton>
+#include <QLabel>
+#include <QLineEdit>
+#include "CVImageWidget.h"
+#include <QCheckBox>
+
 
 namespace Ui {
 class MainWindow;
@@ -15,7 +23,11 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-     MainWindow(CVImageWidget* imageWidget);
+    MainWindow(CVImageWidget *imageWidget);
+
+    QPushButton *recalibrate = NULL;
+    QPushButton *exportData = NULL;
+    QCheckBox *horizontalBox = NULL;
 
 signals:
     void minValueChanged(int minValue);
@@ -24,6 +36,8 @@ signals:
 
 public slots:
     void setMaxChangeValue(float value);
+
+    void checkboxChanged(int value);
 
 private slots:
     void minEditingFinished();

@@ -104,18 +104,6 @@ int main(int argc, char *argv[]) {
     }
 
 
-    if(Settings::getInstance().isStreaming()){
-        //create streaming instance
-
-        //StreamWorker *test = new StreamWorker();
-
-
-    }
-
-
-
-
-
     /// Setup the Gui
     QApplication app(argc, argv);
 
@@ -165,11 +153,6 @@ int main(int argc, char *argv[]) {
                 exit(-1);
             }
 
-
-
-
-
-
             // Worker is grabing new frames, rendering them to the CV canvas,
             // and provide thermal data
 
@@ -188,8 +171,6 @@ int main(int argc, char *argv[]) {
             tdsThread->swap(thermalServerThread);
             tdsThread->detach();
 
-
-
             /// Add some logic
 
             // changes in mix and max temperature for image render (color)
@@ -205,7 +186,6 @@ int main(int argc, char *argv[]) {
             QObject::connect(window->recalibrate, SIGNAL(clicked()), worker1, SLOT(forceFlagEvent()));
             QObject::connect(window->exportData, SIGNAL(clicked()), thermalServer, SLOT(exportData()));
 
-
             int ret = app.exec();
             cout << "Exiting application" << endl;
             delete dev;
@@ -213,7 +193,9 @@ int main(int argc, char *argv[]) {
             dev->stopStreaming();
         }
     }
+    // Replay Data
     else{
+        //TODO: adapt ui.
 
         ThermalDataServer *thermalServer;
         thermalServer = new ThermalDataServer(nullptr);
@@ -227,8 +209,6 @@ int main(int argc, char *argv[]) {
         cout << "Exiting application" << endl;
 
     }
-
-
 
     return 1;
 }

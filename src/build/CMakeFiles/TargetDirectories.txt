@@ -1,6 +1,0 @@
-/home/pascalknierim/Development/ThermalExperimentServer/src/build/CMakeFiles/edit_cache.dir
-/home/pascalknierim/Development/ThermalExperimentServer/src/build/CMakeFiles/ThermalExperimentServer.dir
-/home/pascalknierim/Development/ThermalExperimentServer/src/build/CMakeFiles/rebuild_cache.dir
-/home/pascalknierim/Development/ThermalExperimentServer/src/build/CMakeFiles/mainwindow.dir
-/home/pascalknierim/Development/ThermalExperimentServer/src/build/CMakeFiles/ThermalExperimentServer_automoc.dir
-/home/pascalknierim/Development/ThermalExperimentServer/src/build/CMakeFiles/mainwindow_automoc.dir

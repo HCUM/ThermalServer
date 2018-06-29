@@ -3,6 +3,8 @@
 //
 
 #include "HandleThermalDataConnection.h"
+#include <iomanip>
+
 
 #define DEBUG  true
 
@@ -10,6 +12,45 @@ HandleThermalDataConnection::HandleThermalDataConnection(int client_fd, ThermalD
     _server = server;
     _client_fd = client_fd;
 }
+
+
+
+
+vector<float> getNextLineAndSplitIntoTokens(std::istream& str)
+{
+    vector<float>   result;
+    string                line;
+    getline(str,line);
+
+    stringstream          lineStream(line);
+    string                cell;
+
+    //set min and max // ToDo: make it dynamic
+    result.push_back(10);
+    result.push_back(25);
+    while(getline(lineStream,cell, ','))
+    {
+
+
+        cout << cell.c_str() << "cell char " << endl;
+        float tmp = strtof(cell.c_str(),NULL);
+        cout <<"convert: " << cell << " and add: " << tmp << endl;
+
+        cout.setf(ios::fixed);
+        cout << setprecision(3) << "yeah" << tmp << endl;
+
+        result.push_back(tmp);
+    }
+    // This checks for a trailing comma with no data after it.
+    if (!lineStream && cell.empty())
+    {
+        // If there was a trailing comma then add an empty element.
+        //result.push_back("");
+    }
+    return result;
+}
+
+
 
 void HandleThermalDataConnection::start() {
     while (1) {
@@ -32,18 +73,35 @@ void HandleThermalDataConnection::start() {
 #if DEBUG
             cout << TAG << "send thermal data" << endl;
 #endif
-            std::vector<float> ar;
+            vector<float> ar;
             float temp = 0;
 
-            // Save min and max to array
-            ar.push_back(_server->worker->getMinScale());
-            ar.push_back(_server->worker->getMaxScale());
 
-            for (auto &point : _server->line) // access by reference to avoid copying
-            {
-                temp = _server->worker->getTemperatureAt(point.x(),
-                                                         point.y()); // -1 ;//_server->_pBuilder->getTemperatureAt(point.x(), point.y());
-                ar.push_back(temp);
+
+            // check if we replay data....
+
+            if(Settings::getInstance().isStreaming()) {
+                std::cout << TAG << "Send Replay Data !!!!" << _client_fd << std::endl;
+
+                std::ifstream       file(Settings::getInstance().getStreamFilename());
+
+                //ifstream file(Settings::getInstance().getStreamFilename());
+                ar = getNextLineAndSplitIntoTokens(file);
+
+
+            } else{
+                // Save min and max to array
+                std::cout << TAG << "Send Live Data !!!!" << _client_fd << std::endl;
+
+                ar.push_back(_server->worker->getMinScale());
+                ar.push_back(_server->worker->getMaxScale());
+
+                for (auto &point : _server->line) // access by reference to avoid copying
+                {
+                    temp = _server->worker->getTemperatureAt(point.x(),
+                                                             point.y()); // -1 ;//_server->_pBuilder->getTemperatureAt(point.x(), point.y());
+                    ar.push_back(temp);
+                }
             }
             Send(ar, _client_fd);
         }

@@ -22,7 +22,7 @@ private:
 
     bool mDebug = false;
     bool mStream = false;
-    const char *mFilename = nullptr;
+    char *mFilename = nullptr;
 
 public:
     Settings(Settings const &) = delete;
@@ -51,7 +51,7 @@ public:
         return mStream;
     }
 
-    const char* getStreamFilename(){
+    char* getStreamFilename(){
         return mFilename;
     }
 };

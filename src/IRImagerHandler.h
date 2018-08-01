@@ -1,6 +1,43 @@
 #ifndef OOP_IRIMAGERHANDLER_H_
 #define OOP_IRIMAGERHANDLER_H_
 
+
+
+#include <stdio.h>
+#include <string.h>
+#include <iostream>
+#include <pthread.h>
+#include <sys/time.h>
+#include <signal.h>
+#include <unistd.h>
+#include <queue>
+
+// IR device interfaces
+#include "IRDeviceUVC.h"
+
+// IR imager interfaces
+#include "IRImager.h"
+
+// Helper class for checking calibration files
+#include "IRCalibrationManager.h"
+
+// Logging interface
+#include "IRLogger.h"
+
+// Image converter
+#include "ImageBuilder.h"
+
+// Visualization
+#include "Obvious2D.h"
+
+// Time measurement
+#include "Timer.h"
+
+
+
+
+
+
 /**
  * Optris PI imager interface
  */
@@ -26,7 +63,9 @@
  */
 #include "Obvious2D.h"
 
+
 using namespace evo;
+using namespace std;
 
 /**
  * @class IRImagerHandler
@@ -47,7 +86,7 @@ public:
     /**
      * Destructor
      */
-    virtual ~IRImagerHandler();
+    ~IRImagerHandler();
 
     /**
      * Check if new frame is available
@@ -58,22 +97,28 @@ public:
     /**
      * Overwritten method from IRImagerClient
      */
-    virtual void onRawFrame(unsigned char *data, int size);
+    void onRawFrame(unsigned char* data, int size) override ;
 
     /**
      * Overwritten method from IRImagerClient
      */
-    virtual void onThermalFrame(unsigned short *data, unsigned int w, unsigned int h, IRFrameMetadata meta, void *arg);
+    void onThermalFrame(unsigned short *data, unsigned int w, unsigned int h, IRFrameMetadata meta, void *arg) override ;
+
+
+    void onThermalFrameEvent(unsigned short* data, unsigned int w, unsigned int h, IRFrameMetadata meta, void* arg) override;
 
     /**
      * Overwritten method from IRImagerClient
      */
-    virtual void onVisibleFrame(unsigned char *data, unsigned int w, unsigned int h, IRFrameMetadata meta, void *arg);
+    void onVisibleFrame(unsigned char *data, unsigned int w, unsigned int h, IRFrameMetadata meta, void *arg) override ;
 
+    void onVisibleFrameEvent(unsigned char* data, unsigned int w, unsigned int h, IRFrameMetadata meta, void* arg) override ;
+
+    //void onFlagStateChange(unsigned int flagstate, void *arg) override {};
     /**
      * Overwritten method from IRImagerClient
      */
-    virtual void onFlagStateChange(unsigned int flagstate);
+    void onFlagStateChange(EnumFlagState flagstate, void* arg) override ;
 
     /**
      * Get pointer to last retrieved thermal image

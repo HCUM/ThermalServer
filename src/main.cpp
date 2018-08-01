@@ -3,9 +3,7 @@
 #include "mainwindow.h"
 
 
-//QtImage
-#include "CVImageWidget.h"
-#include <QObject>
+
 
 //UI
 #include <QtGui>
@@ -15,9 +13,26 @@
 #include <QStyle>
 #include <QDesktopWidget>
 
+
+
+
 #include "ThermalWorker.h"
 #include "StreamWorker.h"
 #include "ThermalDataServer.h"
+
+//QtImage
+#include "CVImageWidget.h"
+#include <QObject>
+
+
+
+
+
+
+
+
+
+
 
 /*#include <iostream>
 
@@ -146,7 +161,9 @@ int main(int argc, char *argv[]) {
                 cout << "Visible channel: " << imager.getVisibleWidth() << "x" << imager.getVisibleHeight() << "@"
                      << params.framerate << "Hz" << endl;
 
-            IRImagerHandler handler(dev, &imager);
+            //IRImagerHandler handler(IRDeviceUVC *device, IRImager *imager);
+
+            IRImagerHandler *handler = new IRImagerHandler(dev, &imager);
 
             if (dev->startStreaming() != 0) {
                 cout << "Error occurred in starting stream ... aborting. You may need to reconnect the camera." << endl;
@@ -156,7 +173,7 @@ int main(int argc, char *argv[]) {
             // Worker is grabing new frames, rendering them to the CV canvas,
             // and provide thermal data
 
-            Worker *worker1 = new Worker(&handler, imageWidget);
+            Worker *worker1 = new Worker(handler, imageWidget);
             thread *workerThread = new thread();
             std::thread tmp(&Worker::start, worker1);
             workerThread->swap(tmp);

@@ -27,10 +27,15 @@
 #include <vector>
 #include <map>
 
+
+//#include <QtGui>
+
 #define GL_GLEXT_PROTOTYPES 1
 
+
+#include <GLES3/gl3.h>
 #include <GL/freeglut.h>
-#include <GL/gl.h>
+//#include <GL/gl.h>
 
 #include "Obvious2DClient.h"
 #include "FramerateCounter.h"

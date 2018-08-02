@@ -131,7 +131,7 @@ int main(int argc, char *argv[]) {
                     Qt::AlignCenter,
                     window->size(),
                     qApp->desktop()->availableGeometry()));
-    window->move(0, -100);
+    //window->move(0, -100);
 
     if(!Settings::getInstance().isStreaming()) {
         IRLogger::setVerbosity(IRLOG_ERROR, IRLOG_OFF);

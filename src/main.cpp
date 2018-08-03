@@ -24,6 +24,7 @@
 #include "CVImageWidget.h"
 #include <QObject>
 
+#include "Server.h"
 
 
 
@@ -187,6 +188,9 @@ int main(int argc, char *argv[]) {
             std::thread thermalServerThread(&ThermalDataServer::start, thermalServer);
             tdsThread->swap(thermalServerThread);
             tdsThread->detach();
+
+
+            Server *s = new Server(worker1);
 
             /// Add some logic
 

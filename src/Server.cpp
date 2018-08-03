@@ -70,16 +70,20 @@ void Server::connect() {
 }
 
 
+std::vector<uchar> Server::getBuffer() {
+    return worker->mybuf;
+}
+
 void Server::start(){
     std::thread tmp(&Server::connect, this);
     t.swap(tmp);
 }
 
-/**
-Server::Server() {
+
+Server::Server(Worker *_worker) {
     printf("Create new Server\n");
     static int i = 5;
+    worker = _worker;
     printf("Server created\n");
 }
-**/
 

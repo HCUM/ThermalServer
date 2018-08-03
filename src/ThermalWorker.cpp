@@ -37,6 +37,12 @@ void Worker::forceFlagEvent() {
     mHandler->forceFlagEvent();
 }
 
+void Worker::test(){
+    Mat src = Mat(2, 2, CV_8UC3, Scalar(1,1,1));
+    std::vector<uchar> mybuf;
+    imencode(".jpg", src, mybuf);
+}
+
 void Worker::start() {
 
     while (1) {
@@ -91,6 +97,28 @@ void Worker::start() {
                     ptr += 3;
                 }
             }
+
+            //class data members of ints
+            int total = image->cols * image->rows;
+            std::vector<uchar> vec(image->data, image->data + total);
+
+
+//            Mat src = Mat(2, 2, CV_8UC3, Scalar(1,1,1));
+
+//            vector<uchar> buf;
+//          imencode(".jpg",src,buf);
+
+//          imencode("jpg",src, buf);
+         //   cv::Mat imageRecieved = cv::imdecode( cv::Mat(src), CV_LOAD_IMAGE_COLOR );
+
+
+            //cv::imencode(".jpg", src, mybuf);
+            imencode(".jpg", *image, mybuf);
+
+    //      server->buf = mybuf;
+
+
+
 
             try {
                 mImageWidget->showImage(*image);

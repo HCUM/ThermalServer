@@ -17,8 +17,6 @@
 using namespace std;
 using namespace cv;
 
-Server* myserver;
-
 
 ConnectionHandler::ConnectionHandler(int _client_fd, Server* _server) {
     client_fd=_client_fd;
@@ -38,14 +36,13 @@ ConnectionHandler::ConnectionHandler(int _client_fd, Server* _server) {
 
 }
 
-int status;
 void ConnectionHandler::handleConnection() {
 
     Mat image;
     while(1){
         try
         {
-            std::vector<uchar> buf = myserver->buf;
+            std::vector<uchar> buf =  myserver->getBuffer();
             uchar* sendData = &buf[0];
 
             char frame [256];

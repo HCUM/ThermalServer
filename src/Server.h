@@ -21,6 +21,7 @@
 #include <thread>
 #include <opencv2/core/types_c.h>
 #include <vector>
+#include "ThermalWorker.h"
 
 
 class Server {
@@ -28,12 +29,12 @@ class Server {
 
 public:
     std::vector<uchar> buf;
-
-
-public:
+    Server(Worker *_worker);
     void start();
+    std::vector<uchar> getBuffer();
 
 private:
+    Worker *worker;
     void connect() ;
     std::thread t;
 };

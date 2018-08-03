@@ -12,6 +12,10 @@ class ConnectionHandler {
 
 public:
 
+    Server* myserver;
+    int status;
+
+
     ConnectionHandler(int _client_fd, Server *_server);
     void handleConnection();
     int client_fd;

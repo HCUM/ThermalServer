@@ -14,6 +14,8 @@
 #include <QDesktopWidget>
 
 
+#include <opencv2/opencv.hpp>
+#include "opencv2/opencv.hpp"
 
 
 #include "ThermalWorker.h"
@@ -26,6 +28,8 @@
 
 #include "Server.h"
 
+#include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
 
 
 
@@ -39,8 +43,6 @@
 
 // OpenCV
 
-#include <opencv2/core/core.hpp>
-#include <opencv2/highgui/highgui.hpp>
 
 
 
@@ -143,7 +145,6 @@ int main(int argc, char *argv[]) {
         // Initialize Optris image processing chain
         IRImager imager;
 
-
         if (imager.init(&params, dev->getFrequency(), dev->getWidth(), dev->getHeight())) {
             unsigned int w = imager.getWidth();
             unsigned int h = imager.getHeight();
@@ -191,6 +192,7 @@ int main(int argc, char *argv[]) {
 
 
             Server *s = new Server(worker1);
+            s->start();
 
             /// Add some logic
 

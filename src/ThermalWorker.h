@@ -8,19 +8,10 @@
 #include <iostream>
 // Class wrapping callback routines
 #include "IRImagerHandler.h"
-#include <opencv2/core/core.hpp>
-#include <opencv2/highgui/highgui.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
 
-/**
- * OpenCV
- */
-#include <opencv2/core/core.hpp>
-#include <opencv2/highgui/highgui.hpp>
+
 #include <opencv2/opencv.hpp>
 
-#include <opencv/cv.h>
-#include <opencv/highgui.h>
 #include "ImageBuilder.h"
 #include "CVImageWidget.h"
 #include "Settings.h"

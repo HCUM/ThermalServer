@@ -37,8 +37,6 @@ public:
 
     std::vector<uchar> mybuf;
 
-    void test();
-
 public
     slots:
     void setMinScale(int min);

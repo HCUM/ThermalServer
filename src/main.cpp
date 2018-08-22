@@ -99,6 +99,7 @@ ImageBuilder *_iBuilder;
 int main(int argc, char *argv[]) {
     if (argc < 2 || argc > 3) {
         cout << "usage: " << argv[0] << " <xml configuration file>" << endl;
+        cout << argv[0] << "-stream <file>" << endl;
         return -1;
     }
     if (argc == 2 && argv[1] == std::string("-stream")) {
@@ -114,10 +115,10 @@ int main(int argc, char *argv[]) {
         }
 
         if (argv[1] == std::string("-stream")) {
-            cout << "lets stream a file...."<<  argv[2] << endl;
+            cout << "StreamMode: Streaming files from: "<<  argv[2] << endl;
             cout << argv << endl;
             Settings::getInstance().setIsStreaming(true);
-            Settings::getInstance().setStreamFilename(argv[2]);
+            Settings::getInstance().setStreamFolder(argv[2]);
         }
     }
 

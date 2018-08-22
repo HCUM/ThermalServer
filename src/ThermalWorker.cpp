@@ -37,11 +37,6 @@ void Worker::forceFlagEvent() {
     mHandler->forceFlagEvent();
 }
 
-void Worker::test(){
-    Mat src = Mat(2, 2, CV_8UC3, Scalar(1,1,1));
-    std::vector<uchar> mybuf;
-    cv::imencode(".jpg", src, mybuf);
-}
 
 void Worker::start() {
 

@@ -49,7 +49,7 @@ void IRImagerHandler::onThermalFrame(unsigned short *thermal, unsigned int w, un
 
 void IRImagerHandler::onThermalFrameEvent(unsigned short* data, unsigned int w, unsigned int h, IRFrameMetadata meta, void* arg)
 {
-    cout << "onThermalFrameEvent " << endl;
+
 }
 
 
@@ -62,11 +62,11 @@ void IRImagerHandler::onVisibleFrame(unsigned char *yuyv, unsigned int w, unsign
 }
 
 void IRImagerHandler::onVisibleFrameEvent(unsigned char* data, unsigned int w, unsigned int h, IRFrameMetadata meta, void* arg){
-    cout << "onVisibleFrameEvent " << endl;
+
 }
 
 void IRImagerHandler::onFlagStateChange(EnumFlagState flagstate, void* arg){
-    cout << "Flag state: " << flagstate << endl;
+
 }
 
 unsigned short *IRImagerHandler::getThermalImage() {

@@ -42,6 +42,9 @@ signals:
 
 public:
     ThermalDataServer(Worker *_worker); //ImageBuilder *pBuilder);
+    vector<string> * files;
+    double startSecond;
+
     void start();
     std::vector<QPoint> line;
     Worker *worker;

@@ -23,9 +23,19 @@
 #include <stdlib.h>
 #include <iomanip>
 
+#include <time.h>
+#include <stdio.h>
+#include <iomanip>
+#include <iostream>
+#include <cstring>
+#include <string>
+
+#include "dirent.h"
+
 #include "Settings.h"
 
 using namespace std;
+
 typedef std::int64_t size_type;
 
 class HandleThermalDataConnection {
@@ -38,6 +48,14 @@ public:
 private:
     int _client_fd;
     ThermalDataServer *_server;
+
+
+
+    double elapsedSeconds;
+    bool init = false;
+
+    vector<float> getNextLineAndSplitIntoTokens(std::istream& str);
+    vector<float> prepareRecordedData(int time);
 
     void Send(std::vector<float> &vec, int sock) {
         const size_type sz = vec.size();

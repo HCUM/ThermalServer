@@ -3,7 +3,10 @@
 //
 
 #include "HandleThermalDataConnection.h"
-#include <iomanip>
+
+#include <string>
+#include <vector>
+#include <iostream>
 
 
 #define DEBUG  true
@@ -16,18 +19,83 @@ HandleThermalDataConnection::HandleThermalDataConnection(int client_fd, ThermalD
 
 
 
-vector<float> getNextLineAndSplitIntoTokens(std::istream& str)
-{
-    vector<float>   result;
+vector<string> *listdir(const char *dirname) {
+    DIR *dp;
+    dirent *d;
+    vector<string> *vec = new vector<string>;
+
+    dp = opendir(dirname);
+    while((d = readdir(dp)) != NULL)
+        vec->push_back(d->d_name);
+
+    sort(vec->begin(), vec->end());
+
+    vec->erase (vec->begin(),vec->begin()+2); // remove . and ..
+
+    return vec;
+}
+
+
+/**
+
+void printFolder() {
+    DIR *dir;
+    struct dirent *ent;
+    if ((dir = opendir("~/Development/ThermalServer/recording")) != NULL) {
+// print all the files and directories within directory
+        while ((ent = readdir(dir)) != NULL) {
+            printf("%s\n", ent->d_name);
+        }
+        closedir(dir);
+    } else {
+// could not open directory
+        perror("");
+        //return EXIT_FAILURE;
+    }
+}
+
+**/
+
+
+vector<float> HandleThermalDataConnection::prepareRecordedData(int time) {
+    vector<float> result;
+
+    //set min and max // ToDo: make it dynamic
+    result.push_back(Settings::getInstance().min);
+    result.push_back(Settings::getInstance().max);
+
+    if (_server->files == NULL) {
+        std::cout << "files not loaded, yet" << std::endl;
+        return result;
+    }
+
+    if (time >= _server->files->size()) {
+        time = _server->files->size() - 1;
+    }
+
+
+    // prepare path to file
+    string str = _server->files->at(time);
+    char * cstr = new char [str.length()+1];
+    std::strcpy (cstr, str.c_str());
+
+    char path[256];
+    strcpy ( path, Settings::getInstance().getStreamFolder());
+    strcat ( path, cstr);
+
+    std::ifstream       file(path);
+
     string                line;
-    getline(str,line);
+
+    // read second line
+    getline(file,line);
+    getline(file,line);
 
     stringstream          lineStream(line);
     string                cell;
 
-    //set min and max // ToDo: make it dynamic
-    result.push_back(20);
-    result.push_back(35);
+
+
 
     while(getline(lineStream,cell, ','))
     {
@@ -48,6 +116,23 @@ void HandleThermalDataConnection::start() {
             break;
         }
 
+        // ToDo: Playback recording of stream
+        if (buffer[0] == 'P') {
+
+            if(Settings::getInstance().isStreaming()) {
+                std::cout << TAG << "Start playback timer for recorded data." << std::endl;
+
+                //Start Time
+                _server->startSecond = time(NULL);
+                init = true;
+                //Update file list for streaming
+                _server->files = listdir(Settings::getInstance().getStreamFolder());
+
+            }else {
+                std::cout << TAG << "We are in live mode, you can not start playback." << std::endl;
+                // ToDo: raise error.
+            }
+        }
 
         if (buffer[0] == 'E') {
             cout << TAG << "Export data" << endl;
@@ -60,11 +145,13 @@ void HandleThermalDataConnection::start() {
             float temp = 0;
 
             if(Settings::getInstance().isStreaming()) {
-                std::cout << TAG << "Send Replay Data !!!!" << _client_fd << std::endl;
-                std::ifstream       file(Settings::getInstance().getStreamFilename());
-                ar = getNextLineAndSplitIntoTokens(file);
+                std::cout << TAG << "Send Replay Data!" << _client_fd << std::endl;
+
+                elapsedSeconds = difftime(time(NULL), _server->startSecond);
+                ar = prepareRecordedData(elapsedSeconds);
+
             } else{
-                std::cout << TAG << "Send Live Data !!!!" << _client_fd << std::endl;
+                std::cout << TAG << "Send Live Data!" << _client_fd << std::endl;
                 ar.push_back(_server->worker->getMinScale());
                 ar.push_back(_server->worker->getMaxScale());
 

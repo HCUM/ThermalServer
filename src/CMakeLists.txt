@@ -50,8 +50,8 @@ INCLUDE_DIRECTORIES(/usr/include/libirimager)  # h files
 LINK_DIRECTORIES(/usr/lib)   # .so file
 
 
-INCLUDE_DIRECTORIES(/usr/include/opencv2)  # h files
-LINK_DIRECTORIES(/usr/local/lib)   # .so file
+#INCLUDE_DIRECTORIES(/usr/include/opencv2)  # h files
+#LINK_DIRECTORIES(/usr/local/lib)   # .so file
 
 
 INCLUDE_DIRECTORIES( ${OpenCV_LIBS} )

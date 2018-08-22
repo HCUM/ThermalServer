@@ -116,11 +116,13 @@ void MainWindow::setMaxChangeValue(float value) {
 
 void MainWindow::minEditingFinished() {
     int min = minValueText->text().toInt();
+    Settings::getInstance().min = min;
     emit minValueChanged(min);
 }
 
 void MainWindow::maxEditingFinished() {
     int max = maxValueText->text().toInt();
+    Settings::getInstance().max = max;
     emit maxValueChanged(max);
 }
 

@@ -5,6 +5,8 @@
 #ifndef THERMALEXPERIMENTSERVER_SETTINGS_H
 #define THERMALEXPERIMENTSERVER_SETTINGS_H
 
+#include <stdio.h>
+
 class Settings {
 public:
     static Settings &getInstance() {
@@ -14,15 +16,15 @@ public:
 
     float tubelength = 212;
     bool onlyHorizontal = true;
-    int min = 15;
-    int max = 80;
+    int min = 20;
+    int max = 60;
 
 private:
     Settings() {}
 
     bool mDebug = false;
     bool mStream = false;
-    char *mFilename = nullptr;
+    char *mFolderName = nullptr;
 
 public:
     Settings(Settings const &) = delete;
@@ -38,8 +40,15 @@ public:
         mStream = stream;
     };
 
-    void  setStreamFilename(char *filename){
-        mFilename = filename;
+    void setStreamFolder(char *foldername){
+        int l = strlen(foldername);
+        if (foldername[l-1] == '/'){
+            mFolderName = foldername;}
+        else{
+            mFolderName = static_cast<char *>( malloc(l+2));
+            strcpy(mFolderName, foldername);
+            strcat(mFolderName, "/");
+        }
     }
 
     //Getter
@@ -51,8 +60,8 @@ public:
         return mStream;
     }
 
-    char* getStreamFilename(){
-        return mFilename;
+    char* getStreamFolder(){
+        return mFolderName;
     }
 };
 

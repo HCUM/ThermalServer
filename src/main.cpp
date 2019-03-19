@@ -210,6 +210,9 @@ int main(int argc, char *argv[]) {
             QObject::connect(window->recalibrate, SIGNAL(clicked()), worker1, SLOT(forceFlagEvent()));
             QObject::connect(window->exportData, SIGNAL(clicked()), thermalServer, SLOT(exportData()));
 
+            //Timer for data recording.
+            QObject::connect(window->timer, SIGNAL(timeout()), thermalServer, SLOT(exportData()));
+
             int ret = app.exec();
             cout << "Exiting application" << endl;
             delete dev;

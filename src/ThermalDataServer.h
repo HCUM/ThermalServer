@@ -56,6 +56,11 @@ private:
     void * get_in_addr(struct sockaddr * sa);
     QTimer *timer;
 
+    bool printDiff = false;
+    int counter = 0;
+    float newTemp = 0;
+    float oldTemp = 0;
+
     int status;
     struct addrinfo hints, * res;
     int listner;

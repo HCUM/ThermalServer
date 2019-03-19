@@ -60,7 +60,6 @@ void ThermalDataServer::updateStationaryState(){
 }
 
 void ThermalDataServer::exportData() {
-    cout << TAG << "Export Data " << endl;
 
     time_t rawtime;
     struct tm *timeinfo;
@@ -98,10 +97,20 @@ void ThermalDataServer::exportData() {
     for (auto &point : line) // access by reference to avoid copying
     {
         temp = worker->getTemperatureAt(point.x(), point.y());
+        newTemp = newTemp + temp;
         tempFile << temp << ", ";
     }
 
     tempFile.close();
+
+
+    counter ++;
+    if(counter % 10 == 0){ // Sample over 10 exports/seconds
+        cout << TAG << "Export Data; Diff: " << (newTemp - oldTemp)/values << endl;
+        oldTemp = newTemp;
+        newTemp = 0;
+    }
+
 
 }
 

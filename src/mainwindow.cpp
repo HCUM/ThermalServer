@@ -3,6 +3,10 @@
 MainWindow::MainWindow(CVImageWidget* imageWidget )
 {
 
+
+    timer = new QTimer(this);
+
+
     // Create the MainGrid
     QGridLayout* mainGrid = new QGridLayout();
 
@@ -15,6 +19,8 @@ MainWindow::MainWindow(CVImageWidget* imageWidget )
 
     recalibrate = new QPushButton("Recalibrate");
     exportData = new QPushButton("Export");
+    recordData = new QPushButton("Start recording");
+
 
 /**
     QPushButton *button3 = new QPushButton("Three");
@@ -49,6 +55,7 @@ MainWindow::MainWindow(CVImageWidget* imageWidget )
         labelLayout->addWidget(exportData);
     }
     labelLayout->addWidget(recalibrate);
+    labelLayout->addWidget(recordData);
     labelLayout->addWidget(horizontalBox);
 
 /*
@@ -61,7 +68,7 @@ MainWindow::MainWindow(CVImageWidget* imageWidget )
     QLabel *minValueLabel = new QLabel("Minimal Value: ");
     minValueText = new QLineEdit();
     minValueText->setMaximumWidth(50);
-    minValueText->setText("15");
+    minValueText->setText(QString::number(Settings::getInstance().min));
 
     QObject::connect(minValueText, SIGNAL(editingFinished()),this, SLOT(minEditingFinished()));
 
@@ -73,7 +80,7 @@ MainWindow::MainWindow(CVImageWidget* imageWidget )
     QLabel *maxValueLabel = new QLabel("Maximal Value: ");
     maxValueText = new QLineEdit();
     maxValueText->setMaximumWidth(50);
-    maxValueText->setText("80");
+    maxValueText->setText(QString::number(Settings::getInstance().max));
 
     QHBoxLayout *maxValueLayout = new QHBoxLayout;
     maxValueLayout->addWidget(maxValueLabel);
@@ -105,8 +112,22 @@ MainWindow::MainWindow(CVImageWidget* imageWidget )
 
     QObject::connect(minValueText, SIGNAL(editingFinished()),this, SLOT(minEditingFinished()));
     QObject::connect(maxValueText, SIGNAL(editingFinished()),this, SLOT(maxEditingFinished()));
-
+    QObject::connect(recordData, SIGNAL(clicked()),this, SLOT(record()));
 }
+
+void MainWindow::record() {
+    if(recording){
+        recording = false;
+        recordData->setText("Start recording");
+        timer->stop();
+    }else{
+        recording = true;
+        recordData->setText("Stop recording");
+        timer->start(1000);
+    }
+}
+
+
 
 void MainWindow::setMaxChangeValue(float value) {
     QString s = "Temp change: ";

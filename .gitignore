@@ -1,5 +1,6 @@
 /cmake-build-debug/*
 /src/build/*
+/recording/*
 
 # General
 .DS_Store

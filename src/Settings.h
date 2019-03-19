@@ -16,8 +16,8 @@ public:
 
     float tubelength = 212;
     bool onlyHorizontal = true;
-    int min = 20;
-    int max = 60;
+    int min = 25;
+    int max = 35;
 
 private:
     Settings() {}

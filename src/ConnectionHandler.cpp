@@ -25,11 +25,18 @@ ConnectionHandler::ConnectionHandler(int _client_fd, Server* _server) {
     signal(SIGPIPE, SIG_IGN);
 
 
+    /*
     char response[] = "HTTP/1.0 200 OK\r\n"
             "Cache-Control: no-cache\r\n"
             "Pragma: no-cache\r\n"
             "Connection: close\r\n"
             "Content-Type: multipart/x-mixed-replace; boundary=--BoundaryString\r\n\r\n";
+    */
+
+    char response[] = "HTTP/1.1 200 OK\r\n"
+                      "Last-Modified: Fri, 10 Feb 2012 14:31:06 GMT\r\n"
+                      "Cache-Control: no-cache\r\n";
+
 
     write(client_fd, response, sizeof(response) - 1); /*-1:'\0'*/
     cout << "send response to " << client_fd << endl;
@@ -39,14 +46,14 @@ ConnectionHandler::ConnectionHandler(int _client_fd, Server* _server) {
 void ConnectionHandler::handleConnection() {
 
     Mat image;
-    while(1){
+    //while(1){
         try
         {
             std::vector<uchar> buf =  myserver->getBuffer();
             uchar* sendData = &buf[0];
 
             char frame [256];
-            sprintf(frame, "--BoundaryString\r\nContent-type: image/jpg\r\nContent-Length: %d\r\n\r\n", buf.size());
+            sprintf(frame, "Content-type: image/jpg\r\nContent-Length: %d\r\n\r\n", buf.size());
             size_t length = strlen(frame);
 
             write(client_fd, frame, length);
@@ -67,12 +74,12 @@ void ConnectionHandler::handleConnection() {
         }
         catch (...) { cout << "ConnectionHandler exception"; }
 
-
+        /*
         if(status == -1){
             cout << "clean up sending thread" << endl;
             break;
-        }
-    }
+        }*/
+   // }
 }
 
 

@@ -2,27 +2,20 @@
 // Created by Pascal Knierim on 07/02/17.
 //
 
-#include "ThermalDataServer.h"
 #include <QPoint>
 #include <thread>
 #include "math.h"
 #include <string.h>
 #include <iostream>
 #include <fstream>
-
 #include <QTimer>
-
-
 #include <iostream>
 #include <sys/stat.h>
 #include <ctime>
-
-
 #include <stdlib.h>
-
 #include <chrono>
 #include <thread>
-
+#include "ThermalDataServer.h"
 #include "HandleThermalDataConnection.h"
 
 
@@ -49,14 +42,12 @@ void ThermalDataServer::updateStationaryState(){
     float _maxChange = 0;
     for (auto &point : line) // access by reference to avoid copying
     {
-        float diff = -1; //oldTempVector.at(i) -  _pBuilder->getTemperatureAt(point.x(), point.y());
+        float diff = -1;
         if(abs(diff)> _maxChange)
             _maxChange = abs(diff);
-        //oldTempVector.at(i)  = _pBuilder->getTemperatureAt(point.x(), point.y());
         i++;
     }
     maxChange = _maxChange;
-    //emit maxTempChanged(maxChange);
 }
 
 void ThermalDataServer::exportData() {
@@ -161,8 +152,6 @@ cout << TAG << "Set new Temperature Line at " << start.x() << "," << start.y() <
 ThermalDataServer::ThermalDataServer(Worker *_worker) { //ImageBuilder *pBuilder) {
 
     worker = _worker;
-
-
 
     // Before using hint you have to make sure that the data structure is empty
     memset(& hints, 0, sizeof hints);
@@ -274,15 +263,3 @@ void * ThermalDataServer::get_in_addr(struct sockaddr * sa)
 
     return &(((struct sockaddr_in6 *)sa)->sin6_addr);
 }
-
-
-
-/*
-void ThermalDataServer::setMinVisualisationValue(int min) {
-    _min = min;
-}
-
-void ThermalDataServer::setMaxVisualisationValue(int max) {
-    _max = max;
-}
-*/

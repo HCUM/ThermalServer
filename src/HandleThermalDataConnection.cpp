@@ -3,24 +3,18 @@
 //
 
 #include "HandleThermalDataConnection.h"
-
 #include <string>
 #include <vector>
 #include <iostream>
 #include "QJsonDocument"
 #include "QJsonObject"
 #include <QPoint>
-
 #include "ControlCommand.h"
-
-#define DEBUG  true
 
 HandleThermalDataConnection::HandleThermalDataConnection(int client_fd, ThermalDataServer *server) {
     _server = server;
     _client_fd = client_fd;
 }
-
-
 
 
 vector<string> *listdir(const char *dirname) {
@@ -38,27 +32,6 @@ vector<string> *listdir(const char *dirname) {
 
     return vec;
 }
-
-
-/**
-
-void printFolder() {
-    DIR *dir;
-    struct dirent *ent;
-    if ((dir = opendir("~/Development/ThermalServer/recording")) != NULL) {
-// print all the files and directories within directory
-        while ((ent = readdir(dir)) != NULL) {
-            printf("%s\n", ent->d_name);
-        }
-        closedir(dir);
-    } else {
-// could not open directory
-        perror("");
-        //return EXIT_FAILURE;
-    }
-}
-
-**/
 
 
 vector<float> HandleThermalDataConnection::prepareRecordedData(int time) {
@@ -98,9 +71,6 @@ vector<float> HandleThermalDataConnection::prepareRecordedData(int time) {
     stringstream          lineStream(line);
     string                cell;
 
-
-
-
     while(getline(lineStream,cell, ','))
     {
         float tmp = strtof(cell.c_str(),NULL);
@@ -124,17 +94,7 @@ void HandleThermalDataConnection::start() {
             break;
         }
 
-        // check for json
-
-        /*
-        for (int i = 0; i < 1024 ; ++i) {
-            std::cout << buffer[i]  << " ";
-        }
-        std::cout << "" << std::endl;
-*/
-
-
-
+        // Parse JSON file
         QJsonObject obj;
         QJsonDocument doc = QJsonDocument::fromJson(buffer);
 
@@ -146,7 +106,6 @@ void HandleThermalDataConnection::start() {
             if(doc.isObject())
             {
                 obj = (QJsonObject)doc.object();
-                std::cout << "Document is seems to be an object" << std::endl;
                 cmd.read(obj);
             }
             else
@@ -157,11 +116,64 @@ void HandleThermalDataConnection::start() {
         else
         {
             std::cout << "Invalid JSON...\n" << buffer << std::endl;
+
+            {
+                // legacy implementation
+                // ToDo: Playback recording of stream
+                if (buffer[0] == 'P') {
+
+                    if(Settings::getInstance().isStreaming()) {
+                        std::cout << TAG << "Start playback timer for recorded data." << std::endl;
+
+                        //Start Time
+                        _server->startSecond = time(NULL);
+                        init = true;
+                        //Update file list for streaming
+                        _server->files = listdir(Settings::getInstance().getStreamFolder());
+
+                    }else {
+                        std::cout << TAG << "We are in live mode, you can not start playback." << std::endl;
+                        // ToDo: raise error.
+                    }
+                }
+
+                if (buffer[0] == 'E') {
+                    cout << TAG << "Export data" << endl;
+                    _server->exportData();
+                }
+
+                if (buffer[0] == 'S') {
+
+                    vector<float> ar;
+                    float temp = 0;
+
+                    if(Settings::getInstance().isStreaming()) {
+                        std::cout << TAG << "Send Replay Data!" << _client_fd << std::endl;
+
+                        elapsedSeconds = difftime(time(NULL), _server->startSecond);
+                        ar = prepareRecordedData(elapsedSeconds);
+
+                    } else{
+                        std::cout << TAG << "Send Live Data!" << _client_fd << std::endl;
+                        ar.push_back(_server->worker->getMinScale());
+                        ar.push_back(_server->worker->getMaxScale());
+
+                        for (auto &point : _server->line) // access by reference to avoid copying
+                        {
+                            temp = _server->worker->getTemperatureAt(point.x(),point.y());
+                            ar.push_back(temp);
+                        }
+                    }
+                    Send(ar, _client_fd);
+                }
+
+                if (buffer[0] == 'M') {
+                    send(_client_fd, &(_server->maxChange), sizeof(float), 0);
+                }
+            }
         }
 
-
-        //std::cout << "Got client command: " << cmd.command << std::endl;
-
+        //Handle JSON files on command.
         if(cmd.command == "SetLine"){
             _server->worker->setMinMaxScale(cmd.min,cmd.max);
             QPoint firstPoint(cmd.left,cmd.top);
@@ -170,68 +182,12 @@ void HandleThermalDataConnection::start() {
             //ToDo: very dirty coding.
             _server->worker->mImageWidget->firstPoint = firstPoint;
             _server->worker->mImageWidget->lastPoint = lastPoint;
-
         }
 
 
 
-
-        // ToDo: Playback recording of stream
-        if (buffer[0] == 'P') {
-
-            if(Settings::getInstance().isStreaming()) {
-                std::cout << TAG << "Start playback timer for recorded data." << std::endl;
-
-                //Start Time
-                _server->startSecond = time(NULL);
-                init = true;
-                //Update file list for streaming
-                _server->files = listdir(Settings::getInstance().getStreamFolder());
-
-            }else {
-                std::cout << TAG << "We are in live mode, you can not start playback." << std::endl;
-                // ToDo: raise error.
-            }
-        }
-
-        if (buffer[0] == 'E') {
-            cout << TAG << "Export data" << endl;
-            _server->exportData();
-        }
-
-        if (buffer[0] == 'S') {
-
-            vector<float> ar;
-            float temp = 0;
-
-            if(Settings::getInstance().isStreaming()) {
-                std::cout << TAG << "Send Replay Data!" << _client_fd << std::endl;
-
-                elapsedSeconds = difftime(time(NULL), _server->startSecond);
-                ar = prepareRecordedData(elapsedSeconds);
-
-            } else{
-                std::cout << TAG << "Send Live Data!" << _client_fd << std::endl;
-                ar.push_back(_server->worker->getMinScale());
-                ar.push_back(_server->worker->getMaxScale());
-
-                for (auto &point : _server->line) // access by reference to avoid copying
-                {
-                    temp = _server->worker->getTemperatureAt(point.x(),point.y());
-                    ar.push_back(temp);
-                }
-            }
-            Send(ar, _client_fd);
-        }
-
-        if (buffer[0] == 'M') {
-            send(_client_fd, &(_server->maxChange), sizeof(float), 0);
-        }
 
 
     }
     close(_client_fd);
-#if DEBUG
-    std::cout << TAG << "connection closed; ConnectionID: " << _client_fd << std::endl;
-#endif
 }

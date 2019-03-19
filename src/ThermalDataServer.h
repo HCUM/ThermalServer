@@ -14,7 +14,6 @@
 #include<netdb.h>
 #include<arpa/inet.h>
 #include <vector>
-
 #include <QObject>
 #include "ImageBuilder.h"
 #include <QTimer>
@@ -72,10 +71,6 @@ private:
 
     bool reset = true;
     std::vector<float> oldTempVector;
-
-
-
 };
-
 
 #endif //THERMALVISUALIZATION_THERMALDATASERVER_H

@@ -22,8 +22,9 @@ public:
 
     // definition of min and max of thermal image and plot
     int min, max;
+
+    //data of measured temperature values
+    float data[];
 };
-
-
 
 #endif //THERMALEXPERIMENTSERVER_CALIBRATIONDATA_H

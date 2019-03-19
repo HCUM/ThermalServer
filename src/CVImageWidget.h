@@ -46,11 +46,8 @@ protected:
 
     QImage _qimage;
     QImage _qimageS;
-
     cv::Mat _tmp;
 
     void drawLineTo();
-
-
     bool scribbling;
 };

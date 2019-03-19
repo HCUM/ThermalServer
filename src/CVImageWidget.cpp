@@ -1,12 +1,5 @@
 #include "CVImageWidget.h"
 
-
-/*
-void setThermalImage(unsigned short *img){
-    std::cout << "slot setNEWIMAGE"<< std::endl;
-}
-*/
-
 void CVImageWidget::showImage(const cv::Mat& image) {
     // Convert the image to the RGB888 format
     switch (image.type()) {

@@ -54,8 +54,6 @@ private:
     int _client_fd;
     ThermalDataServer *_server;
 
-
-
     double elapsedSeconds;
     bool init = false;
 
@@ -69,8 +67,6 @@ private:
     }
 
     string TAG = "[HandleThermalConnection]: ";
-
-
 
 };
 

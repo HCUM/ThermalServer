@@ -88,7 +88,7 @@ ENDIF(USE_LIBUSB)
 
 
 ADD_EXECUTABLE(ThermalExperimentServer main.cpp Obvious2D.cpp IRImagerGUI.cpp IRImagerHandler.cpp
-         CVImageWidget.cpp ThermalDataServer.cpp HandleThermalDataConnection.cpp StreamWorker.cpp ConnectionHandler.cpp Server.cpp)
+         CVImageWidget.cpp ThermalDataServer.cpp HandleThermalDataConnection.cpp StreamWorker.cpp ConnectionHandler.cpp Server.cpp ControlCommand.cpp)
 
 
 target_link_libraries(ThermalExperimentServer stream opencv_core opencv_imgproc opencv_highgui window )

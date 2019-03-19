@@ -37,6 +37,9 @@ public:
 
     std::vector<uchar> mybuf;
 
+    CVImageWidget *mImageWidget;
+
+
 public
     slots:
     void setMinScale(int min);
@@ -54,7 +57,6 @@ private:
     unsigned short *_thermal;
     unsigned char *_imgThermal;
     EnumOptrisColoringPalette palette;
-    CVImageWidget *mImageWidget;
     float minScale;
     float maxScale;
 

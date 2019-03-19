@@ -202,8 +202,7 @@ int main(int argc, char *argv[]) {
             QObject::connect(window, SIGNAL(maxValueChanged(int)), worker1, SLOT(setMaxScale(int)));
 
             //changes in the measurment line
-            QObject::connect(imageWidget, SIGNAL(valueChanged(QPoint, QPoint)), thermalServer,
-                             SLOT(setTemperatureLine(QPoint, QPoint)));
+            QObject::connect(imageWidget, SIGNAL(valueChanged(QPoint, QPoint)), thermalServer, SLOT(setTemperatureLine(QPoint, QPoint)));
 
 
             // some buttons:

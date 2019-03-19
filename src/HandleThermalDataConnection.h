@@ -33,17 +33,22 @@
 #include "dirent.h"
 
 #include "Settings.h"
+#include <QObject>
+
 
 using namespace std;
 
 typedef std::int64_t size_type;
 
-class HandleThermalDataConnection {
-
+class HandleThermalDataConnection : public QObject {
+    Q_OBJECT
 public:
     HandleThermalDataConnection(int client_fd, ThermalDataServer *server);
 
     void start();
+
+    signals:
+    void valueChanged(QPoint start, QPoint end);
 
 private:
     int _client_fd;

@@ -7,7 +7,11 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include "QJsonDocument"
+#include "QJsonObject"
+#include <QPoint>
 
+#include "ControlCommand.h"
 
 #define DEBUG  true
 
@@ -108,13 +112,69 @@ vector<float> HandleThermalDataConnection::prepareRecordedData(int time) {
 
 
 void HandleThermalDataConnection::start() {
+
+    QObject::connect(this, SIGNAL(valueChanged(QPoint, QPoint)), _server, SLOT(setTemperatureLine(QPoint, QPoint)));
+
+
     while (1) {
-        char buffer[256];
-        bzero(buffer, 256);
-        int n = read(_client_fd, buffer, 255);
+        char buffer[1024];
+        bzero(buffer, 1024);
+        int n = read(_client_fd, buffer, 1023);
         if (n == 0) {
             break;
         }
+
+        // check for json
+
+        /*
+        for (int i = 0; i < 1024 ; ++i) {
+            std::cout << buffer[i]  << " ";
+        }
+        std::cout << "" << std::endl;
+*/
+
+
+
+        QJsonObject obj;
+        QJsonDocument doc = QJsonDocument::fromJson(buffer);
+
+        ControlCommand cmd;
+
+        // check validity of the document
+        if(!doc.isNull())
+        {
+            if(doc.isObject())
+            {
+                obj = (QJsonObject)doc.object();
+                std::cout << "Document is seems to be an object" << std::endl;
+                cmd.read(obj);
+            }
+            else
+            {
+                std::cout << "Document is not an object" << std::endl;
+            }
+        }
+        else
+        {
+            std::cout << "Invalid JSON...\n" << buffer << std::endl;
+        }
+
+
+        //std::cout << "Got client command: " << cmd.command << std::endl;
+
+        if(cmd.command == "SetLine"){
+            _server->worker->setMinMaxScale(cmd.min,cmd.max);
+            QPoint firstPoint(cmd.left,cmd.top);
+            QPoint lastPoint(cmd.right,cmd.top);
+            emit valueChanged(firstPoint,lastPoint);
+            //ToDo: very dirty coding.
+            _server->worker->mImageWidget->firstPoint = firstPoint;
+            _server->worker->mImageWidget->lastPoint = lastPoint;
+
+        }
+
+
+
 
         // ToDo: Playback recording of stream
         if (buffer[0] == 'P') {

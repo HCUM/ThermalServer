@@ -117,8 +117,7 @@ void ThermalDataServer::exportData() {
 void ThermalDataServer::setTemperatureLine(QPoint start, QPoint end)
 {
 
-cout << TAG << "Set new Temperature Line" <<
-endl;
+cout << TAG << "Set new Temperature Line at " << start.x() << "," << start.y() << " and " << end.x() << "," << end.y() << endl;
     line.clear();
     reset = true;
     timer->start(30000);

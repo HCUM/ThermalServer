@@ -18,68 +18,51 @@ using namespace std;
 using namespace cv;
 
 
+/*
+ * Handles incoming connections and returns JPEG image from thermal imager.
+ */
+
 ConnectionHandler::ConnectionHandler(int _client_fd, Server* _server) {
     client_fd=_client_fd;
     myserver = _server;
 
     signal(SIGPIPE, SIG_IGN);
 
-
-    /*
-    char response[] = "HTTP/1.0 200 OK\r\n"
-            "Cache-Control: no-cache\r\n"
-            "Pragma: no-cache\r\n"
-            "Connection: close\r\n"
-            "Content-Type: multipart/x-mixed-replace; boundary=--BoundaryString\r\n\r\n";
-    */
-
     char response[] = "HTTP/1.1 200 OK\r\n"
-                      "Last-Modified: Fri, 10 Feb 2012 14:31:06 GMT\r\n"
                       "Cache-Control: no-cache\r\n";
 
-
-    write(client_fd, response, sizeof(response) - 1); /*-1:'\0'*/
+    write(client_fd, response, sizeof(response) - 1);
     cout << "send response to " << client_fd << endl;
-
 }
 
 void ConnectionHandler::handleConnection() {
-
     Mat image;
-    //while(1){
-        try
-        {
-            std::vector<uchar> buf =  myserver->getBuffer();
-            uchar* sendData = &buf[0];
+    try
+    {
+        std::vector<uchar> buf =  myserver->getBuffer();
+        uchar* sendData = &buf[0];
 
-            char frame [256];
-            sprintf(frame, "Content-type: image/jpg\r\nContent-Length: %d\r\n\r\n", buf.size());
-            size_t length = strlen(frame);
+        char frame [256];
+        sprintf(frame, "Content-type: image/jpg\r\nContent-Length: %d\r\n\r\n", buf.size());
+        size_t length = strlen(frame);
 
-            write(client_fd, frame, length);
-            write(client_fd, sendData, buf.size());
+        write(client_fd, frame, length);
+        write(client_fd, sendData, buf.size());
 
-            sprintf(frame, "\r\n\r\n");
-            length = strlen(frame);
-            status  = write(client_fd, frame, length);
+        sprintf(frame, "\r\n\r\n");
+        length = strlen(frame);
+        status  = write(client_fd, frame, length);
 
-            usleep(33000);  // 30 fps
+        usleep(33000);  // 30 fps
 
-        }
-        catch (exception& e)
-        {
-            cout << "ConnectionHandler crashed" << endl;
-            cout << e.what() << '\n';
-            return;
-        }
-        catch (...) { cout << "ConnectionHandler exception"; }
-
-        /*
-        if(status == -1){
-            cout << "clean up sending thread" << endl;
-            break;
-        }*/
-   // }
+    }
+    catch (exception& e)
+    {
+        cout << "ConnectionHandler crashed" << endl;
+        cout << e.what() << '\n';
+        return;
+    }
+    catch (...) { cout << "ConnectionHandler exception"; }
 }
 
 

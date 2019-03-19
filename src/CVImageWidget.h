@@ -18,9 +18,13 @@ public:
     QSize sizeHint() const { return _qimage.size()*2; }
     QSize minimumSizeHint() const { return _qimage.size(); }
 
+    QPoint lastPoint;
+    QPoint firstPoint;
+
 public slots:
     // void setThermalImage(unsigned short *img);
     void showImage(const cv::Mat& image);
+
 
 signals:
     void valueChanged(QPoint start, QPoint end);
@@ -47,7 +51,6 @@ protected:
 
     void drawLineTo();
 
-    QPoint lastPoint;
-    QPoint firstPoint;
+
     bool scribbling;
 };

@@ -176,8 +176,9 @@ void HandleThermalDataConnection::start() {
         //Handle JSON files on command.
         if(cmd.command == "SetLine"){
             _server->worker->setMinMaxScale(cmd.min,cmd.max);
-            QPoint firstPoint(cmd.left,cmd.top);
-            QPoint lastPoint(cmd.right,cmd.top);
+            //we work with the scaled image
+            QPoint firstPoint(cmd.left*2,cmd.top*2);
+            QPoint lastPoint(cmd.right*2,cmd.top*2);
             emit valueChanged(firstPoint,lastPoint);
             //ToDo: very dirty coding.
             _server->worker->mImageWidget->firstPoint = firstPoint;

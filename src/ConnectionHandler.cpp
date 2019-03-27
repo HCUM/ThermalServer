@@ -32,7 +32,6 @@ ConnectionHandler::ConnectionHandler(int _client_fd, Server* _server) {
                       "Cache-Control: no-cache\r\n";
 
     write(client_fd, response, sizeof(response) - 1);
-    cout << "send response to " << client_fd << endl;
 }
 
 void ConnectionHandler::handleConnection() {
@@ -53,7 +52,7 @@ void ConnectionHandler::handleConnection() {
         length = strlen(frame);
         status  = write(client_fd, frame, length);
 
-        usleep(33000);  // 30 fps
+       // usleep(33000);  // 30 fps
 
     }
     catch (exception& e)
